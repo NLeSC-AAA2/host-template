@@ -1,10 +1,7 @@
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <iomanip>
-
-#define __CL_ENABLE_EXCEPTIONS
+#pragma once
 #include <CL/cl.hpp>
+#include <vector>
+#include <string>
 
 void init(
     cl::Context &context,

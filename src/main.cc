@@ -4,6 +4,7 @@
 #include <cstdlib>
 
 #define VERSION "0.1.0"
+#include "cl/cl.hh"
 
 int main(int argc, char **argv)
 {
@@ -32,6 +33,16 @@ int main(int argc, char **argv)
     if (args["version"]) {
         std::cerr << "FPGA OpenCL host code template program -- " << VERSION << std::endl;
         return EXIT_SUCCESS;
+    }
+
+    try {
+        cl::Context context;
+        std::vector<cl::Device> devices;
+        createContext(context, devices);
+    } catch (cl::Error const &e) {
+        std::cerr << "caught cl::Error: " << e.what() << std::endl;
+        std::cerr << errorMessage(e.err()) << std::endl;
+        return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;

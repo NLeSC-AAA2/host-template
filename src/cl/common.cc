@@ -1,9 +1,11 @@
-#include <iostream>
-
 #define __CL_ENABLE_EXCEPTIONS
 #include <CL/cl.hpp>
 
-#include "common.h"
+#include "common.hh"
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <iomanip>
 
 using namespace std;
 

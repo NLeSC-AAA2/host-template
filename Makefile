@@ -1,11 +1,13 @@
 build_dir = ./build
 
 fmt_cflags = -DFMT_HEADER_ONLY
+aocl_cflags = $(shell aocl compile-config)
+aocl_lflags = $(shell aocl link-config)
 
-compile_flags = -std=c++14 -Wall -O3 -Iinclude -Isrc $(fmt_cflags)
+compile_flags = -std=c++14 -Wall -O3 -Iinclude -Isrc $(fmt_cflags) $(aocl_cflags)
 compile = g++
 
-link_flags = -lstdc++fs
+link_flags = -lstdc++fs $(aocl_lflags)
 link = g++
 
 cc_files = $(shell find ./src -name *.cc)
