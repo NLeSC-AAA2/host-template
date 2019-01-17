@@ -1,5 +1,5 @@
 include_flags = -I${ALTERAOCLSDKROOT}/include/kernel_headers
-emulator_flags = -march=emulator -board=p385a_min_ax115
+emulator_flags = -march=emulator
 compile = aoc $(emulator_flags) $(include_flags)
 
 .PHONY: build 
