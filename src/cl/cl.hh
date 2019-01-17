@@ -3,6 +3,11 @@
 #define __CL_ENABLE_EXCEPTIONS
 #include <CL/cl.hpp>
 
+#undef CL_MEM_HOST_READ_ONLY  // 17.1 does not accept them, at least not in the emulator
+#define CL_MEM_HOST_READ_ONLY   0
+#undef CL_MEM_HOST_WRITE_ONLY
+#define CL_MEM_HOST_WRITE_ONLY  0
+
 #include "common.hh"
 #include "binaries.hh"
 #include "contexts.hh"

@@ -41,7 +41,7 @@ void write_source(
 cl::Program get_program(
     cl::Context& context,
     cl::Device& device,
-    std::string& filename);
+    std::string const &filename);
 
 cl::Kernel get_kernel(
     cl::Program& program,

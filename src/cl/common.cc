@@ -78,7 +78,7 @@ void print_device(cl::Device &device, bool marker)
 cl::Program get_program(
     cl::Context& context,
     cl::Device& device,
-    string& filename)
+    string const &filename)
 {
     os << ">>> Loading program from binary: " << filename << endl;
     try {

@@ -2,22 +2,13 @@
 #include <fmt/format.h>
 #include <iostream>
 #include <cstdlib>
+#include "cl/cl.hh"
 
 #define VERSION "0.1.0"
 #define N 100
 #define M 32*32
 
-#include "cl/cl.hh"
-
-void randomize_data(std::vector<cl_float2> &data)
-{
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    for (cl_float2 &z : data) {
-        z[0] = std::generate_canonical<float, 16>(gen);
-        z[1] = 0.0;
-    }
-}
+extern void fft_test(std::string const &filename, unsigned fft_size, unsigned repeats);
 
 int main(int argc, char **argv)
 {
@@ -56,29 +47,8 @@ int main(int argc, char **argv)
     }
 
     try {
-        cl::Context context;
-        std::vector<cl::Device> devices;
-        createContext(context, devices);
-
         std::string filename = args["kernel"].as<std::string>();
-        cl::Program program = get_program(context, devices[0], filename);
-        cl::CommandQueue queue(context, devices[0], CL_QUEUE_PROFILING_ENABLE);
-       
-        std::vector<cl_float2> input_data(M * N), output_data(M * N); 
-        size_t bs = sizeof(cl_float2) * M * N;
-        cl::Buffer input_device(context, CL_MEM_WRITE_ONLY, bs);
-        cl::Buffer output_device(context, CL_MEM_READ_ONLY, bs);
-        
-        queue.enqueueWriteBuffer(input_device, CL_TRUE, 0, bs, input_data.data(), NULL, NULL);
-        cl::Kernel inKernel(program, "source");
-        set_args(inKernel, input_device, M*N);
-
-        cl::Kernel outKernel(program, "sink");
-        set_args(outKernel, output_device, M*N);
-
-        std::vector<cl::Event> wait_list;
-        queue.enqueueReadBuffer(output_device, CL_TRUE, 0, bs, output_data.data(), &wait_list, NULL);
-        
+        fft_test(filename, M, N);
     } catch (cl::Error const &e) {
         std::cerr << "caught cl::Error: " << e.what() << std::endl;
         std::cerr << errorMessage(e.err()) << std::endl;
