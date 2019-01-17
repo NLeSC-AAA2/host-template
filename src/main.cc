@@ -5,7 +5,7 @@
 #include "cl/cl.hh"
 
 #define VERSION "0.1.0"
-#define N 100
+#define N 10
 #define M 32*32
 
 extern void fft_test(std::string const &filename, unsigned fft_size, unsigned repeats);

@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <utility>
+#include <iostream>
 
 void init(
     cl::Context &context,

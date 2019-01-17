@@ -18,10 +18,17 @@ void randomize_data(gsl::span<std::complex<float>> data)
     }
 }
 
+void print_data(gsl::span<std::complex<float>> data)
+{
+    for (auto const &z : data) {
+        std::cout << z.real() << " " << z.imag() << std::endl;
+    }
+}
+
 void fft_test(std::string const &filename, unsigned fft_size, unsigned repeats)
 {
-    size_t data_size = fft_size * repeats,
-           byte_size = data_size * sizeof(float) * 2;
+    unsigned data_size = fft_size * repeats,
+             byte_size = data_size * sizeof(float) * 2;
 
     cl::Context context;
     std::vector<cl::Device> devices;
@@ -65,7 +72,12 @@ void fft_test(std::string const &filename, unsigned fft_size, unsigned repeats)
     cl_ulong start = source_event.getProfilingInfo<CL_PROFILING_COMMAND_START>();
     cl_ulong stop  = sink_event.getProfilingInfo<CL_PROFILING_COMMAND_END>();
     double seconds = (stop - start) / 1e9;
-    std::cout << "runtime = " << seconds << " s" << std::endl;
+    std::cout << "# runtime = " << seconds << " s" << std::endl;
+
+    std::cout << "# input data\n";
+    print_data(input_data);
+    std::cout << "\n# output data\n";
+    print_data(output_data);
 
     queue.enqueueUnmapMemObject(host_input_buf, input_data.data());
     queue.enqueueUnmapMemObject(host_output_buf, output_data.data());
