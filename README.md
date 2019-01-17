@@ -27,3 +27,9 @@ export CL_CONTEXT_EMULATOR_DEVICE_INTELFPGA=1
 prun ./build/host-template 1
 ```
 
+Compile an OpenCL kernel for emulation:
+
+```
+aoc -march=emulator -board=p385a_min_ax115 kernel.cl
+```
+
