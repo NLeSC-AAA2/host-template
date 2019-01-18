@@ -1,4 +1,6 @@
+#include "fft.hh"
 #include "cl/cl.hh"
+
 #include <iostream>
 #include <string>
 #include <complex>
@@ -25,9 +27,9 @@ void print_data(gsl::span<std::complex<float>> data)
     }
 }
 
-void fft_test(std::string const &filename, unsigned fft_size, unsigned repeats)
+void fft_test(std::string const &filename, unsigned fft_size, unsigned block_size, unsigned repeats)
 {
-    unsigned data_size = fft_size * repeats,
+    unsigned data_size = fft_size * block_size,
              byte_size = data_size * sizeof(float) * 2;
 
     cl::Context context;
@@ -44,7 +46,6 @@ void fft_test(std::string const &filename, unsigned fft_size, unsigned repeats)
     cl::Buffer host_output_buf(context,
             CL_MEM_HOST_READ_ONLY | CL_MEM_ALLOC_HOST_PTR, byte_size);
 
-     
     gsl::span<std::complex<float>> input_data(
         reinterpret_cast<std::complex<float>*>(
             queue.enqueueMapBuffer(host_input_buf, CL_TRUE, CL_MAP_WRITE, 0, byte_size)),
@@ -55,7 +56,6 @@ void fft_test(std::string const &filename, unsigned fft_size, unsigned repeats)
             queue.enqueueMapBuffer(host_output_buf, CL_TRUE, CL_MAP_READ, 0, byte_size)),
         data_size);
     
-    randomize_data(input_data);
 
     cl::Kernel source_kernel(program, "source"),
                sink_kernel(program, "sink");
@@ -63,16 +63,31 @@ void fft_test(std::string const &filename, unsigned fft_size, unsigned repeats)
     set_args(sink_kernel, device_output_buf, data_size);
 
     cl::Event source_event, sink_event;
-    queue.enqueueCopyBuffer(host_input_buf, device_input_buf, 0, 0, byte_size);
-    queue.enqueueTask(source_kernel, 0, &source_event);
-    queue.enqueueTask(sink_kernel, 0, &sink_event);
-    queue.enqueueCopyBuffer(device_output_buf, host_output_buf, 0, 0, byte_size);
-    queue.finish();
+    std::vector<double> timings;
+    for (unsigned i = 0; i < repeats; ++i) {
+        randomize_data(input_data);
 
-    cl_ulong start = source_event.getProfilingInfo<CL_PROFILING_COMMAND_START>();
-    cl_ulong stop  = sink_event.getProfilingInfo<CL_PROFILING_COMMAND_END>();
-    double seconds = (stop - start) / 1e9;
-    std::cout << "# runtime = " << seconds << " s" << std::endl;
+        queue.enqueueCopyBuffer(host_input_buf, device_input_buf, 0, 0, byte_size);
+        queue.enqueueTask(source_kernel, NULL, &source_event);
+        queue.enqueueTask(sink_kernel, NULL, &sink_event);
+        queue.enqueueCopyBuffer(device_output_buf, host_output_buf, 0, 0, byte_size);
+        queue.finish();
+
+        cl_ulong start = source_event.getProfilingInfo<CL_PROFILING_COMMAND_START>();
+        cl_ulong stop  = sink_event.getProfilingInfo<CL_PROFILING_COMMAND_END>();
+        double seconds = (stop - start) / 1e9;
+        std::cerr << "# runtime = " << seconds << " s" << std::endl;
+        timings.push_back(seconds);
+
+        std::vector<int> shape = {32, 32};
+        if (!validate_fft(shape, block_size, input_data, output_data, 1e-3)) {
+            std::cerr << "# fft failed validation\n";
+        }
+    }
+
+    double total = 0.0;
+    for (double t : timings) total += t;
+    std::cout << "# average runtime = " << total / repeats << " s" << std::endl;
 
     std::cout << "# input data\n";
     print_data(input_data);

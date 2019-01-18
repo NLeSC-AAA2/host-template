@@ -7,15 +7,17 @@
 #define VERSION "0.1.0"
 #define M 32*32
 
-extern void fft_test(std::string const &filename, unsigned fft_size, unsigned repeats);
+extern void fft_test(std::string const &filename, unsigned fft_size, unsigned block_size, unsigned repeats);
 
 int main(int argc, char **argv)
 {
     argagg::parser argparser {{
         { "kernel", {"-k", "--kernel"},
           ".aocx file to load kernel from", 1 },
+        { "block", {"-b", "--block"},
+          "(10) block size: number of ffts per go", 1 },
         { "repeat", {"-r", "--repeat"},
-          "(10) send a multitude of data to source", 1 },
+          "(100) send a multitude of data to source", 1 },
         { "help", {"-h", "--help"},
           "shows this help message", 0 },
         { "version", {"-v", "--version"},
@@ -47,11 +49,12 @@ int main(int argc, char **argv)
         return EXIT_SUCCESS;
     }
 
-    unsigned repeats = args["repeat"].as<unsigned>(10);
+    unsigned repeats = args["repeat"].as<unsigned>(100);
+    unsigned block = args["block"].as<unsigned>(10);
 
     try {
         std::string filename = args["kernel"].as<std::string>();
-        fft_test(filename, M, repeats);
+        fft_test(filename, M, block, repeats);
     } catch (cl::Error const &e) {
         std::cerr << "caught cl::Error: " << e.what() << std::endl;
         std::cerr << errorMessage(e.err()) << std::endl;
