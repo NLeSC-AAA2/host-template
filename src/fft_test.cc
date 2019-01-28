@@ -37,7 +37,8 @@ void fft_test(std::string const &filename, unsigned fft_size, unsigned block_siz
     createContext(context, devices);
 
     cl::Program program = get_program(context, devices[0], filename);
-    cl::CommandQueue queue(context, devices[0], CL_QUEUE_PROFILING_ENABLE);
+    cl::CommandQueue queue_in(context, devices[0], CL_QUEUE_PROFILING_ENABLE);
+    cl::CommandQueue queue_out(context, devices[0], CL_QUEUE_PROFILING_ENABLE);
 
     cl::Buffer device_input_buf(context, CL_MEM_READ_ONLY, byte_size);
     cl::Buffer device_output_buf(context, CL_MEM_WRITE_ONLY, byte_size);
