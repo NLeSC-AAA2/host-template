@@ -7,10 +7,10 @@ aocl_lflags = $(shell aocl link-config)
 fftw_cflags = $(shell pkg-config --cflags fftw3f)
 fftw_lflags = $(shell pkg-config --libs fftw3f)
 
-compile_flags = -std=c++14 -Wall -O3 -Iinclude -Isrc $(fmt_cflags) $(aocl_cflags) $(fftw_cflags)
+compile_flags = -std=c++14 -Wall -O3 -Iinclude -Isrc -pthread $(fmt_cflags) $(aocl_cflags) $(fftw_cflags)
 compile = g++
 
-link_flags = -lstdc++fs $(aocl_lflags) $(fftw_lflags)
+link_flags = -lstdc++fs $(aocl_lflags) $(fftw_lflags) -pthread
 link = g++
 
 cc_files = $(shell find ./src -name *.cc)

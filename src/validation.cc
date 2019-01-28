@@ -4,12 +4,11 @@
 #include <fftw3.h>
 #include <iostream>
 
-bool validate_fft(
+float validate_fft(
         shape_t const &shape,
         unsigned block,
         complex_span<float> input,
-        complex_span<float> output,
-        float epsrel)
+        complex_span<float> output)
 {
     size_t s = 1;
     for (auto x : shape) s *= x;
@@ -27,7 +26,6 @@ bool validate_fft(
         double diff = std::abs(ground_truth[i] - output[i]) / std::abs(ground_truth[i]);
         max_diff = (diff > max_diff ? diff : max_diff);
     }
-    std::cerr << "# " << max_diff << std::endl;
-    return max_diff < epsrel;
+    return max_diff;
 }
 
