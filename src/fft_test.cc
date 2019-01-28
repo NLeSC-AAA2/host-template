@@ -7,6 +7,7 @@
 #include <gsl/span>
 
 #include <random>
+#include <thread>
 
 void randomize_data(gsl::span<std::complex<float>> data)
 {
@@ -27,6 +28,14 @@ void print_data(gsl::span<std::complex<float>> data)
     }
 }
 
+void enqueue(
+    cl::CommandQueue &queue,
+    cl::Kernel const &kernel,
+    cl::Event &event)
+{
+    queue.enqueueTask(kernel, NULL, &event);
+}
+
 void fft_test(std::string const &filename, unsigned fft_size, unsigned block_size, unsigned repeats)
 {
     unsigned data_size = fft_size * block_size,
@@ -37,7 +46,8 @@ void fft_test(std::string const &filename, unsigned fft_size, unsigned block_siz
     createContext(context, devices);
 
     cl::Program program = get_program(context, devices[0], filename);
-    cl::CommandQueue queue(context, devices[0], CL_QUEUE_PROFILING_ENABLE);
+    cl::CommandQueue source_queue(context, devices[0], CL_QUEUE_PROFILING_ENABLE);
+    cl::CommandQueue sink_queue(context, devices[0], CL_QUEUE_PROFILING_ENABLE);
 
     cl::Buffer device_input_buf(context, CL_MEM_READ_ONLY, byte_size);
     cl::Buffer device_output_buf(context, CL_MEM_WRITE_ONLY, byte_size);
@@ -48,15 +58,14 @@ void fft_test(std::string const &filename, unsigned fft_size, unsigned block_siz
 
     gsl::span<std::complex<float>> input_data(
         reinterpret_cast<std::complex<float>*>(
-            queue.enqueueMapBuffer(host_input_buf, CL_TRUE, CL_MAP_WRITE, 0, byte_size)),
+            source_queue.enqueueMapBuffer(host_input_buf, CL_TRUE, CL_MAP_WRITE, 0, byte_size)),
         data_size);
 
     gsl::span<std::complex<float>> output_data(
         reinterpret_cast<std::complex<float>*>(
-            queue.enqueueMapBuffer(host_output_buf, CL_TRUE, CL_MAP_READ, 0, byte_size)),
+            sink_queue.enqueueMapBuffer(host_output_buf, CL_TRUE, CL_MAP_READ, 0, byte_size)),
         data_size);
     
-
     cl::Kernel source_kernel(program, "source"),
                sink_kernel(program, "sink");
     set_args(source_kernel, device_input_buf, data_size);
@@ -66,12 +75,21 @@ void fft_test(std::string const &filename, unsigned fft_size, unsigned block_siz
     std::vector<double> timings;
     for (unsigned i = 0; i < repeats; ++i) {
         randomize_data(input_data);
+        source_queue.enqueueCopyBuffer(host_input_buf, device_input_buf, 0, 0, byte_size);
 
-        queue.enqueueCopyBuffer(host_input_buf, device_input_buf, 0, 0, byte_size);
-        queue.enqueueTask(source_kernel, NULL, &source_event);
-        queue.enqueueTask(sink_kernel, NULL, &sink_event);
-        queue.enqueueCopyBuffer(device_output_buf, host_output_buf, 0, 0, byte_size);
-        queue.finish();
+        std::thread source_thread(enqueue,
+            std::ref(source_queue),
+            std::ref(source_kernel),
+            std::ref(source_event));
+        std::thread sink_thread(enqueue,
+            std::ref(sink_queue),
+            std::ref(sink_kernel),
+            std::ref(sink_event));
+        source_thread.join();
+        sink_thread.join();
+        sink_queue.enqueueCopyBuffer(device_output_buf, host_output_buf, 0, 0, byte_size);
+        source_queue.finish();
+        sink_queue.finish();
 
         cl_ulong start = source_event.getProfilingInfo<CL_PROFILING_COMMAND_START>();
         cl_ulong stop  = sink_event.getProfilingInfo<CL_PROFILING_COMMAND_END>();
@@ -94,7 +112,7 @@ void fft_test(std::string const &filename, unsigned fft_size, unsigned block_siz
     std::cout << "\n# output data\n";
     print_data(output_data);
 
-    queue.enqueueUnmapMemObject(host_input_buf, input_data.data());
-    queue.enqueueUnmapMemObject(host_output_buf, output_data.data());
+    source_queue.enqueueUnmapMemObject(host_input_buf, input_data.data());
+    sink_queue.enqueueUnmapMemObject(host_output_buf, output_data.data());
 }
 
