@@ -1,4 +1,5 @@
 #include "fft.hh"
+#include "validation.hh"
 #include "cl/cl.hh"
 
 #include <iostream>
@@ -98,8 +99,8 @@ void fft_test(std::string const &filename, unsigned fft_size, unsigned block_siz
         timings.push_back(seconds);
 
         std::vector<int> shape = {32, 32};
-        float max_diff = validate_fft(shape, block_size, input_data, output_data);
-        std::cout << seconds << " " << max_diff << std::endl;
+        Errors err = validate_fft(shape, block_size, input_data, output_data);
+        std::cout << seconds << " " << err.abs << " " << err.rel << std::endl;
     }
 
     double total = 0.0;

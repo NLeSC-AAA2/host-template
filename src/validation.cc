@@ -1,10 +1,12 @@
+#include "validation.hh"
 #include "fft.hh"
 #include <array>
 #include <gsl/span>
 #include <fftw3.h>
 #include <iostream>
+#include <numeric>
 
-float validate_fft(
+Errors validate_fft(
         shape_t const &shape,
         unsigned block,
         complex_span<float> input,
@@ -21,11 +23,13 @@ float validate_fft(
         FFTW_FORWARD, FFTW_ESTIMATE);
     fftwf_execute(plan);
 
-    double max_diff = 0.0;
+    Errors max = {0.0, 0.0};
     for (size_t i = 0; i < s*block; ++i) {
-        double diff = std::abs(ground_truth[i] - output[i]) / std::abs(ground_truth[i]);
-        max_diff = (diff > max_diff ? diff : max_diff);
+        double abs_err = std::abs(ground_truth[i] - output[i]);
+        double rel_err = abs_err / std::abs(ground_truth[i]);
+        max.abs = std::max(abs_err, max.abs);
+        max.rel = std::max(rel_err, max.rel);
     }
-    return max_diff;
+    return max;
 }
 
