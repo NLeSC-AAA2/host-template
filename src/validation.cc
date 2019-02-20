@@ -15,8 +15,9 @@ std::map<std::string, TripleA2::TypeId> TripleA2::type_map =
         , {"complex128", COMPLEX128}
         };
 
-// Register<Implementation<Config, complex64, complex64>>
-//    ("fft", complex_fft);
+
+// Register<FFTImplementation<Config, complex64, complex64>>
+//     ("fft", complex_fft);
 
 Errors validate_fft
     ( shape_t const &shape

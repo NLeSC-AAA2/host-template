@@ -3,11 +3,14 @@ build_dir = ./build
 fmt_cflags = -DFMT_HEADER_ONLY
 aocl_cflags = $(shell aocl compile-config)
 aocl_lflags = $(shell aocl link-config)
+aocl_shut_up = -isystem /var/scratch/package/altera_pro/18.1.0.222/hld/host/include
 
 fftw_cflags = $(shell pkg-config --cflags fftw3f)
 fftw_lflags = $(shell pkg-config --libs fftw3f)
 
-compile_flags = -std=c++14 -Wall -O3 -Iinclude -iquote src -iquote test/gtest -iquote test/gmock -pthread $(fmt_cflags) $(aocl_cflags) $(fftw_cflags)
+compile_flags = -std=c++14 -Wall -O3 -Iinclude -iquote src -iquote test/gtest \
+		-iquote test/gmock -pthread $(fmt_cflags) $(aocl_cflags) $(fftw_cflags) \
+		$(aocl_shut_up)
 compile = g++
 
 link_flags = -lstdc++fs $(aocl_lflags) $(fftw_lflags) -pthread
