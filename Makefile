@@ -7,27 +7,44 @@ aocl_lflags = $(shell aocl link-config)
 fftw_cflags = $(shell pkg-config --cflags fftw3f)
 fftw_lflags = $(shell pkg-config --libs fftw3f)
 
-compile_flags = -std=c++14 -Wall -O3 -Iinclude -Isrc -pthread $(fmt_cflags) $(aocl_cflags) $(fftw_cflags)
+compile_flags = -std=c++14 -Wall -O3 -Iinclude -iquote src -iquote test/gtest -iquote test/gmock -pthread $(fmt_cflags) $(aocl_cflags) $(fftw_cflags)
 compile = g++
 
 link_flags = -lstdc++fs $(aocl_lflags) $(fftw_lflags) -pthread
 link = g++
 
-cc_files = $(shell find ./src -name *.cc)
+cc_files = $(shell find ./src -name *.cc ! -name main.cc)
 obj_files = $(cc_files:%.cc=$(build_dir)/%.o)
 dep_files = $(obj_files:%.o=%.d)
 
-.PHONY: clean build
+main_cc_file = ./src/main.cc
+main_obj_file = $(build_dir)/src/main.o
+dep_files += $(build_dir)/src/main.d
+
+test_cc_files = ./test/gtest/src/gtest-all.cc ./test/gmock/src/gmock-all.cc ./test/gtest/src/gtest_main.cc
+test_cc_files += $(shell find test -name '*.cc' ! -path 'test/gtest/*' ! -path 'test/gmock/*')
+test_obj_files = $(test_cc_files:%.cc=$(build_dir)/%.o)
+test_dep_files = $(test_obj_files:%.o=%.d)
+
+.PHONY: clean build test
 
 build: $(build_dir)/host-template
 
--include $(dep_files)
+test: $(build_dir)/run-tests
+	$(build_dir)/run-tests
 
-$(build_dir)/%.o : %.cc
+-include $(dep_files)
+-include $(test_dep_files)
+
+$(build_dir)/%.o : %.cc Makefile
 	@mkdir -p $(@D)
 	$(compile) $(compile_flags) -MMD -c $< -o $@
 
-$(build_dir)/host-template : $(obj_files)
+$(build_dir)/host-template : $(obj_files) $(main_obj_file)
+	@mkdir -p $(@D)
+	$(link) $^ $(link_flags) -o $@
+
+$(build_dir)/run-tests : $(test_obj_files) $(obj_files)
 	@mkdir -p $(@D)
 	$(link) $^ $(link_flags) -o $@
 

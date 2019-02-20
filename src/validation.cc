@@ -6,11 +6,23 @@
 #include <iostream>
 #include <numeric>
 
-Errors validate_fft(
-        shape_t const &shape,
-        unsigned block,
-        complex_span<float> input,
-        complex_span<float> output)
+using namespace TripleA2;
+
+std::map<std::string, TripleA2::TypeId> TripleA2::type_map = 
+        { {"float32", FLOAT32}
+        , {"float64", FLOAT64}
+        , {"complex64", COMPLEX64}
+        , {"complex128", COMPLEX128}
+        };
+
+// Register<Implementation<Config, complex64, complex64>>
+//    ("fft", complex_fft);
+
+Errors validate_fft
+    ( shape_t const &shape
+    , unsigned block
+    , complex_span<float> input
+    , complex_span<float> output )
 {
     size_t s = 1;
     for (auto x : shape) s *= x;
