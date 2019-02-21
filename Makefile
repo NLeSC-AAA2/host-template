@@ -39,17 +39,31 @@ test: $(build_dir)/run-tests
 -include $(dep_files)
 -include $(test_dep_files)
 
+V = 0
+AT_0 := @
+AT_1 :=
+AT = $(AT_$(V))
+
+ifeq ($(V), 1)
+    PRINTF := @\#
+else
+    PRINTF := @printf
+endif
+
 $(build_dir)/%.o : %.cc Makefile
-	@mkdir -p $(@D)
-	$(compile) $(compile_flags) -MMD -c $< -o $@
+	$(PRINTF) " CC\t$@\n"
+	$(AT)mkdir -p $(@D)
+	$(AT)$(compile) $(compile_flags) -MMD -c $< -o $@
 
 $(build_dir)/host-template : $(obj_files) $(main_obj_file)
-	@mkdir -p $(@D)
-	$(link) $^ $(link_flags) -o $@
+	$(PRINTF) " LD\t$@\n"
+	$(AT)mkdir -p $(@D)
+	$(AT)$(link) $^ $(link_flags) -o $@
 
 $(build_dir)/run-tests : $(test_obj_files) $(obj_files)
-	@mkdir -p $(@D)
-	$(link) $^ $(link_flags) -o $@
+	$(PRINTF) " LD\t$@\n"
+	$(AT)mkdir -p $(@D)
+	$(AT)$(link) $^ $(link_flags) -o $@
 
 clean:
 	-rm -rf $(build_dir)
