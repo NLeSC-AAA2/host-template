@@ -4,7 +4,6 @@
 #include <complex>
 #include <vector>
 
-extern void randomize_data(gsl::span<std::complex<float>> data);
 extern void fft_test(std::string const &filename, unsigned fft_size, unsigned block_size, unsigned repeats);
 
 template <typename T>

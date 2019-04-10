@@ -10,6 +10,8 @@
 #include <random>
 #include <thread>
 
+namespace
+{
 void randomize_data(gsl::span<std::complex<float>> data)
 {
     std::random_device rd;
@@ -35,6 +37,7 @@ void enqueue(
     cl::Event &event)
 {
     queue.enqueueTask(kernel, NULL, &event);
+}
 }
 
 void fft_test(std::string const &filename, unsigned fft_size, unsigned block_size, unsigned repeats)
