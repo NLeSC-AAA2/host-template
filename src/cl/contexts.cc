@@ -30,8 +30,6 @@ void createContext(cl::Context &context, std::vector<cl::Device> &devices)
       std::cerr << "Unrecognized device type: " << deviceType;
   }
 
-  const char *deviceName = getenv("DEVICE");
-
   std::vector<cl::Platform> platforms;
   cl::Platform::get(&platforms);
 
