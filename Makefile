@@ -1,6 +1,7 @@
 .POSIX:
 .SUFFIXES:
-.PHONY: clean build test
+.PHONY: clean build test device device-emulator
+.DEFAULT: all
 
 build_dir = ./build
 
@@ -34,6 +35,12 @@ test_cc_files += $(shell find test -name '*.cc' ! -path 'test/gtest/*' ! -path '
 test_obj_files = $(test_cc_files:%.cc=$(build_dir)/%.o)
 test_dep_files = $(test_obj_files:%.o=%.d)
 
+all: build device-emulator test
+
+device:
+
+device-emulator:
+
 build: $(build_dir)/host-template
 
 test: $(build_dir)/run-tests
@@ -52,6 +59,9 @@ ifeq ($(V), 1)
 else
     PRINTF := @printf
 endif
+
+VPATH = device
+include device/SubDir.mk
 
 $(build_dir)/%.o : %.cc Makefile
 	$(PRINTF) " CC\t$(@F)\n"
