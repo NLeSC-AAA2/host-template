@@ -1,9 +1,11 @@
 aoc_include_flags = -I${ALTERAOCLSDKROOT}/include/kernel_headers
 aoc = aoc $(aoc_include_flags)
 
-device-emulator: $(build_dir)/fft.emulator.aocx
+kernels = fft
 
-device: $(build_dir)/fft.aocx
+device-emulator: $(patsubst %,$(build_dir)/%.emulator.aocx,$(kernels))
+
+device: $(patsubst %,$(build_dir)/%.aocx,$(kernels))
 
 $(build_dir)/%.emulator.aocx : %.cl
 	$(PRINTF) " AOC\t$(@F)\n"
