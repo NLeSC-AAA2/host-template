@@ -1,10 +1,11 @@
-#include "validation.hh"
-#include "fft.hh"
 #include <array>
+#include <complex>
 #include <gsl/span>
 #include <fftw3.h>
 #include <iostream>
 #include <numeric>
+
+#include "validation.hh"
 
 using namespace TripleA2;
 

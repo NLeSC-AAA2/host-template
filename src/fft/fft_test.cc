@@ -1,17 +1,24 @@
-#include "fft.hh"
-#include "validation.hh"
-#include "cl/cl.hh"
-
+#include <argagg.hpp>
+#include <complex>
+#include <functional>
+#include <gsl/span>
 #include <iostream>
 #include <string>
-#include <complex>
-#include <gsl/span>
 
 #include <random>
 #include <thread>
 
+#include "../cl/cl.hh"
+#include "command.hh"
+#include "validation.hh"
+
+#define M 32*32
+
 namespace
 {
+
+using namespace TripleA2;
+
 void randomize_data(gsl::span<std::complex<float>> data)
 {
     std::random_device rd;
@@ -38,10 +45,18 @@ void enqueue(
 {
     queue.enqueueTask(kernel, NULL, &event);
 }
-}
 
-void fft_test(std::string const &filename, unsigned fft_size, unsigned block_size, unsigned repeats)
+void fft_test(const argagg::parser_results& args)
 {
+    if (!args["kernel"]) {
+        std::cerr << args.program << ": -k/--kernel option is required" << std::endl;
+        //return EXIT_FAILURE;
+    }
+
+    std::string const &filename = args["kernel"].as<std::string>();
+    unsigned fft_size = M;
+    unsigned repeats = args["repeat"].as<unsigned>(100);
+    unsigned block_size = args["block"].as<unsigned>(10);
     unsigned data_size = fft_size * block_size,
              byte_size = data_size * sizeof(float) * 2;
 
@@ -114,3 +129,14 @@ void fft_test(std::string const &filename, unsigned fft_size, unsigned block_siz
     sink_queue.enqueueUnmapMemObject(host_output_buf, output_data.data());
 }
 
+argagg::parser argparser {{
+    { "kernel", {"-k", "--kernel"},
+        ".aocx file to load kernel from", 1 },
+    { "block", {"-b", "--block"},
+        "(10) block size: number of ffts per go", 1 },
+    { "repeat", {"-r", "--repeat"},
+        "(100) send a multitude of data to source", 1 }
+}};
+
+CommandRegistry fft("fft", std::make_pair(&fft_test, argparser));
+}

@@ -28,6 +28,9 @@ namespace TripleA2
             }
         }
 
+        static dir_t &get()
+        { return dir(); }
+
         static T &get(std::string const &name)
         {
             return dir().at(name);

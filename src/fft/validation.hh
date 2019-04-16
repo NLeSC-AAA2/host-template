@@ -1,13 +1,16 @@
 #pragma once
-#include "fft.hh"
 #include <fftw3.h>
 
-#include <gsl/span>
 #include <functional>
+#include <gsl/span>
 #include <map>
 #include <string>
 #include <vector>
-#include <cassert> 
+#include <cassert>
+
+template <typename T>
+using complex_span = gsl::span<std::complex<T>>;
+using shape_t = std::vector<int>;
 
 namespace TripleA2 {
     template <typename Config, typename InputNum, typename OutputNum=InputNum>
