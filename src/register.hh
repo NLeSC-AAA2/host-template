@@ -22,7 +22,10 @@ namespace TripleA2
         template <typename ...Args>
         Register(std::string const &name, Args &&...args)
         {
-            dir()[name] = T(std::forward<Args>(args)...);
+            auto result = dir().emplace(name, std::forward<Args>(args)...);
+            if (!result.second) {
+                throw std::runtime_error("Key already in Register: " + name);
+            }
         }
 
         static T &get(std::string const &name)
