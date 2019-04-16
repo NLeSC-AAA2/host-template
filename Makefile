@@ -13,7 +13,7 @@ aocl_shut_up = -isystem /var/scratch/package/altera_pro/18.1.0.222/hld/host/incl
 fftw_cflags = $(shell pkg-config --cflags fftw3f)
 fftw_lflags = $(shell pkg-config --libs fftw3f)
 
-compile_flags = -std=c++14 -Wall -O3 -Iinclude -iquote src -iquote test/gtest \
+compile_flags = -std=c++14 -Wall -O3 -Ivendor -iquote src -iquote test/gtest \
 		-iquote test/gmock -pthread $(fmt_cflags) $(aocl_cflags) $(fftw_cflags) \
 		$(aocl_shut_up)
 compile = g++
