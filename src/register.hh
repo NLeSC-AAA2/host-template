@@ -1,5 +1,6 @@
 #pragma once
 #include <map>
+#include <memory>
 #include <utility>
 #include <string>
 
@@ -26,11 +27,10 @@ namespace TripleA2
 
         static T &get(std::string const &name)
         {
-            return dir()[name];
+            return dir().at(name);
         }
     };
 
     template <typename T>
     std::unique_ptr<std::map<std::string, T>> Register<T>::s_dir;
 }
-
