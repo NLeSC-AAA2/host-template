@@ -1,6 +1,8 @@
-#include "errors.hh"
 #include <CL/cl.hpp>
+#define FMT_HEADER_ONLY
 #include <fmt/format.h>
+
+#include "errors.hh"
 
 std::string errorMessage(cl_int error)
 {
@@ -70,4 +72,3 @@ std::string errorMessage(cl_int error)
 	default:                                    return fmt::format("Unknown ({})", error);
   }
 }
-
