@@ -3,51 +3,33 @@
 .PHONY: clean build test device device-emulator
 .DEFAULT: all
 
-build_dir = ./build
+BUILD_DIR:=./build
+LIB_DIR:=$(BUILD_DIR)/lib
+EXE_DIR:=./build
+LD:=g++
+CXX:=g++
+CXXFLAGS:=-std=c++14 -Wall -pedantic -O3 -Ivendor -iquote include
 
-fmt_cflags = -DFMT_HEADER_ONLY
-aocl_cflags = $(shell aocl compile-config)
-aocl_lflags = $(shell aocl link-config)
-aocl_shut_up = -isystem /var/scratch/package/altera_pro/18.1.0.222/hld/host/include
-
-fftw_cflags = $(shell pkg-config --cflags fftw3f)
-fftw_lflags = $(shell pkg-config --libs fftw3f)
-
-compile_flags = -std=c++14 -Wall -O3 -Ivendor -iquote include -iquote test/gtest \
-		-iquote test/gmock -pthread $(fmt_cflags) $(aocl_cflags) $(fftw_cflags) \
-		$(aocl_shut_up)
-compile = g++
-
-link_flags = -lstdc++fs $(aocl_lflags) $(fftw_lflags) -pthread
-link = g++
-
-subdirs = src
-cc_files = $(foreach dir,$(subdirs),$(shell find ./$(dir) -name *.cc ! -name main.cc))
-obj_files = $(cc_files:%.cc=$(build_dir)/%.o)
-dep_files = $(obj_files:%.o=%.d)
-
-main_cc_file = ./src/main.cc
-main_obj_file = $(build_dir)/src/main.o
-dep_files += $(build_dir)/src/main.d
-
-test_cc_files = ./test/gtest/src/gtest-all.cc ./test/gmock/src/gmock-all.cc ./test/gtest/src/gtest_main.cc
-test_cc_files += $(shell find test -name '*.cc' ! -path 'test/gtest/*' ! -path 'test/gmock/*')
-test_obj_files = $(test_cc_files:%.cc=$(build_dir)/%.o)
-test_dep_files = $(test_obj_files:%.o=%.d)
-
-all: build device-emulator test
+all: build device-emulator
 
 device:
 
 device-emulator:
 
-build: $(build_dir)/host-template
+$(LIB_DIR)/:
+	mkdir -p $@
 
-test: $(build_dir)/run-tests
-	$(build_dir)/run-tests
+build:
 
--include $(dep_files)
--include $(test_dep_files)
+test:
+
+clean: BUILD_DIR:=$(BUILD_DIR)
+clean:
+	-rm -rf $(BUILD_DIR)
+
+%.a: | $(LIB_DIR)/
+	$(PRINTF) " AR\t$@\n"
+	$(AT)$(AR) rcs $@ $^
 
 V = 0
 AT_0 := @
@@ -60,24 +42,4 @@ else
     PRINTF := @printf
 endif
 
-VPATH = device
-include device/SubDir.mk
-
-$(build_dir)/%.o : %.cc Makefile
-	$(PRINTF) " CC\t$(@F)\n"
-	$(AT)mkdir -p $(@D)
-	$(AT)$(compile) $(compile_flags) -MMD -c $< -o $@
-
-$(build_dir)/host-template : $(obj_files) $(main_obj_file)
-	$(PRINTF) " LD\t$(@F)\n"
-	$(AT)mkdir -p $(@D)
-	$(AT)$(link) $^ $(link_flags) -o $@
-
-$(build_dir)/run-tests : $(test_obj_files) $(obj_files)
-	$(PRINTF) " LD\t$(@F)\n"
-	$(AT)mkdir -p $(@D)
-	$(AT)$(link) $^ $(link_flags) -o $@
-
-clean:
-	-rm -rf $(build_dir)
-
+include src/Makefile test/Makefile
