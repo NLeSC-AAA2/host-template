@@ -6,6 +6,12 @@
 #include "command.hh"
 
 #define VERSION "0.1.0"
+namespace TripleA2
+{
+    template<>
+    std::unique_ptr<std::map<std::string, CommandPair>>
+    Register<CommandPair>::s_dir;
+}
 
 int main(int argc, char **argv)
 {

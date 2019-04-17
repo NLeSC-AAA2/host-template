@@ -8,5 +8,6 @@
 namespace TripleA2
 {
     using CommandFunction = std::function<void(const argagg::parser_results&)>;
-    using CommandRegistry = Register<std::pair<CommandFunction, argagg::parser>>;
+    using CommandPair = std::pair<CommandFunction, argagg::parser>;
+    using CommandRegistry = Register<CommandPair>;
 }
