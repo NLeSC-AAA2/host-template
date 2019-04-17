@@ -1,8 +1,14 @@
-SRCDIR:=$(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
+MAKEFILE:=$(lastword $(MAKEFILE_LIST))
+SRCDIR:=$(patsubst %/,%,$(abspath $(dir $(MAKEFILE))))
 SUBDIR:=$(notdir $(SRCDIR))
 BUILD_DIR:=$(BUILD_DIR)/$(SUBDIR)
 
-include Rules.mk
+ifeq ($(abspath $(CURDIR)), $(abspath $(SRCDIR)))
+ROOTDIR:=$(patsubst %/,%,$(dir $(realpath $(MAKEFILE))))
+include $(ROOTDIR)/Common.mk
+endif
+
+include $(ROOTDIR)/Rules.mk
 -include $(BUILD_DIR)/*.d
 
 include $(SRCDIR)/Targets.mk

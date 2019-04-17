@@ -1,6 +1,4 @@
-$(BUILD_DIR)/:
-	$(PRINTF) " MKDIR\t$(@)\n"
-	$(AT)mkdir -p $@
+$(BUILD_DIR)/: ; $(make-dir)
 
 AOCFLAGS:=-I${ALTERAOCLSDKROOT}/include/kernel_headers
 AOC:=aoc

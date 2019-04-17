@@ -5,9 +5,7 @@ test_obj_files = $(test_cc_files:$(SRCDIR)/%.cc=$(BUILD_DIR)/%.o)
 $(test_obj_files): CXXFLAGS+=-iquote $(SRCDIR)/gtest/ -iquote $(SRCDIR)/gmock/
 $(test_obj_files): | $(BUILD_DIR)/gtest/src/ $(BUILD_DIR)/gmock/src/
 
-$(BUILD_DIR)/gtest/src/ $(BUILD_DIR)/gmock/src/:
-	$(PRINTF) " MKDIR\t$(@)\n"
-	$(AT)mkdir -p $@
+$(BUILD_DIR)/gtest/src/ $(BUILD_DIR)/gmock/src/: ; $(make-dir)
 
 $(EXE_DIR)/run-tests: LDFLAGS+=-lpthread
 $(EXE_DIR)/run-tests: $(test_obj_files)
