@@ -6,7 +6,8 @@ $(test_obj_files): CXXFLAGS+=-iquote $(SRCDIR)/gtest/ -iquote $(SRCDIR)/gmock/
 $(test_obj_files): | $(BUILD_DIR)/gtest/src/ $(BUILD_DIR)/gmock/src/
 
 $(BUILD_DIR)/gtest/src/ $(BUILD_DIR)/gmock/src/:
-	mkdir -p $@
+	$(PRINTF) " MKDIR\t$(@)\n"
+	$(AT)mkdir -p $@
 
 $(EXE_DIR)/run-tests: LDFLAGS+=-lpthread
 $(EXE_DIR)/run-tests: $(test_obj_files)
@@ -14,3 +15,6 @@ $(EXE_DIR)/run-tests: $(test_obj_files)
 	$(AT)$(LD) $^ $(LDFLAGS) -o $@
 
 build: $(EXE_DIR)/run-tests
+
+test: $(EXE_DIR)/run-tests
+	@$(EXE_DIR)/run-tests

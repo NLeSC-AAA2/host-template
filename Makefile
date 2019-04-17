@@ -17,7 +17,8 @@ device:
 device-emulator:
 
 $(LIB_DIR)/:
-	mkdir -p $@
+	$(PRINTF) " MKDIR\t$(@)\n"
+	$(AT)mkdir -p $@
 
 build:
 
@@ -28,7 +29,7 @@ clean:
 	-rm -rf $(BUILD_DIR)
 
 %.a: | $(LIB_DIR)/
-	$(PRINTF) " AR\t$@\n"
+	$(PRINTF) " AR\t$(@F)\n"
 	$(AT)$(AR) rcs $@ $^
 
 V = 0
