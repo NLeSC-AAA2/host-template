@@ -6,6 +6,7 @@ ROOTDIR?=$(abspath $(CURDIR))
 BUILD_ROOT:=$(ROOTDIR)/build
 LIB_DIR:=$(BUILD_ROOT)/lib
 EXE_DIR:=$(BUILD_ROOT)
+KERNEL_DIR:=$(BUILD_ROOT)/kernels
 
 CXX:=g++
 CXXFLAGS:=-std=c++14 -Wall -pedantic -O3 -I$(ROOTDIR)/vendor -iquote $(ROOTDIR)/include
@@ -24,7 +25,7 @@ $(PRINTF) " MKDIR\t$(patsubst $(ROOTDIR)/%/,%,$(@))\n"
 $(AT)mkdir -p $@
 endef
 
-$(LIB_DIR)/ $(BUILD_ROOT)/: ; $(make-dir)
+$(LIB_DIR)/ $(BUILD_ROOT)/ $(KERNEL_DIR): ; $(make-dir)
 
 build: $(EXE_DIR)/host-template $(EXE_DIR)/run-tests
 
