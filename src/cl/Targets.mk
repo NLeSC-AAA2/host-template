@@ -5,3 +5,5 @@ $(BUILD_DIR)/%.o: CXXFLAGS+=$(shell aocl compile-config) \
     -isystem /var/scratch/package/altera_pro/18.1.0.222/hld/host/include
 
 $(LIB_DIR)/libcl.a: $(ofiles)
+
+$(TARGET): $(LIB_DIR)/libcl.a

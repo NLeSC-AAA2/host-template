@@ -6,3 +6,5 @@ $(BUILD_DIR)/%.o: CXXFLAGS+=$(shell aocl compile-config) \
     $(shell pkg-config --cflags fftw3f)
 
 $(LIB_DIR)/libfft.a: $(ofiles)
+
+$(TARGET): $(LIB_DIR)/libfft.a

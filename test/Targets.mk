@@ -12,7 +12,4 @@ $(EXE_DIR)/run-tests: $(test_obj_files)
 	$(PRINTF) " LD\t$(@F)\n"
 	$(AT)$(LD) $^ $(LDFLAGS) -o $@
 
-build: $(EXE_DIR)/run-tests
-
-test: $(EXE_DIR)/run-tests
-	@$(EXE_DIR)/run-tests
+$(TARGET): $(EXE_DIR)/run-tests
