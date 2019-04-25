@@ -1,8 +1,3 @@
-$(BUILD_DIR)/: ; $(make-dir)
-
-AOCFLAGS:=-I${ALTERAOCLSDKROOT}/include/kernel_headers
-AOC:=aoc
-
 $(BUILD_DIR)/%.o: $(SRCDIR)/%.cc | $(BUILD_DIR)/
 	$(PRINTF) " CC\t$(^F)\n"
 	$(AT)$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@

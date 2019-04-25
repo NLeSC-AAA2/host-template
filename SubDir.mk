@@ -18,6 +18,8 @@ ifeq ($(INCLUDE_FROM_ROOT),true)
     .DEFAULT_GOAL:=$(TARGET)
     include $(ROOTDIR)/Makefile
 else
+    $(BUILD_DIR)/: ; $(make-dir)
+
     include $(ROOTDIR)/Rules.mk
 
     include $(SRCDIR)/Targets.mk
