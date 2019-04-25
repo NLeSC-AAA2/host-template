@@ -1,8 +1,11 @@
+# Make a symlink to this file from any subdir with source files
+
 MAKEFILE:=$(lastword $(MAKEFILE_LIST))
 SRCDIR:=$(patsubst %/,%,$(dir $(abspath $(MAKEFILE))))
 TARGET:=$(abspath $(MAKEFILE))-targets
 .PHONY: $(TARGET)
 
+# Prevent infinite recursion
 INCLUDE_FROM_ROOT:=false
 ifeq ($(abspath $(CURDIR)), $(abspath $(SRCDIR)))
     ifneq ($(.DEFAULT_GOAL), $(TARGET))

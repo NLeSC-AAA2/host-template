@@ -1,7 +1,7 @@
 ROOTDIR?=$(abspath $(CURDIR))
 .POSIX:
 .SUFFIXES:
-.PHONY: clean build test device device-emulator
+.PHONY: all clean build test device device-emulator
 
 BUILD_ROOT:=$(ROOTDIR)/build
 LIB_DIR:=$(BUILD_ROOT)/lib
