@@ -49,8 +49,7 @@ void enqueue(
 void fft_test(const argagg::parser_results& args)
 {
     if (!args["kernel"]) {
-        std::cerr << args.program << ": -k/--kernel option is required" << std::endl;
-        //return EXIT_FAILURE;
+        throw std::runtime_error("-k/--kernel option is required");
     }
 
     std::string const &filename = args["kernel"].as<std::string>();

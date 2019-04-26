@@ -39,7 +39,7 @@ int main(int argc, char **argv)
         auto command_pair = TripleA2::CommandRegistry::get(command);
         if (reportHelp) {
             std::cerr << "FPGA OpenCL host code template program -- " << VERSION << std::endl;
-            std::cerr << "Usage: " << args.program << " " << command << " [options]" << std::endl;
+            std::cerr << "Usage: " << argv[0] << " " << args.program << " " << command << " [options]" << std::endl;
             std::cerr << command_pair.second;
             return EXIT_SUCCESS;
         }
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
         std::cerr << errorMessage(e.err()) << std::endl;
         return EXIT_FAILURE;
     } catch (std::exception const &e) {
-        std::cerr << e.what() << std::endl;
+        std::cerr << argv[0] << " " << args.program << ": " << e.what() << std::endl;
         return EXIT_FAILURE;
     }
 
