@@ -137,5 +137,5 @@ argagg::parser argparser {{
         "(100) send a multitude of data to source", 1 }
 }};
 
-CommandRegistry fft("fft", std::make_pair(&fft_test, argparser));
+CommandRegistry fftCommand("fft", std::make_pair(&fft_test, argparser));
 }
