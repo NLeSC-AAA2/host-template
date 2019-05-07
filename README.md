@@ -27,4 +27,10 @@ export CL_CONTEXT_EMULATOR_DEVICE_INTELFPGA=1
 prun ./build/host-template 1
 ```
 
+To run on FPGA
+
+```
+prun -native "-p fat20 -w node504" -# 1 -t 1:00:00 build/host-template
+```
+
 Compile an OpenCL kernel for emulation: use `Makefile` in `device` folder.
