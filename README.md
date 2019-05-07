@@ -30,7 +30,7 @@ prun ./build/host-template 1
 To run on FPGA
 
 ```
-prun -native "-p fat20 -w node504" -# 1 -t 1:00:00 build/host-template
+prun -native "-p fat20 -w node504" -np 1 -t 1:00:00 build/host-template
 ```
 
 Compile an OpenCL kernel for emulation: use `Makefile` in `device` folder.
