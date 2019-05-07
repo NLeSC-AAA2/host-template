@@ -45,20 +45,22 @@ int main(int argc, char **argv)
         }
 
         args = command_pair.second.parse(argc - 1, &argv[1]);
-        command_pair.first(args);
+        try {
+            command_pair.first(args);
+        } catch (cl::Error const &e) {
+            std::cerr << "caught cl::Error: " << e.what() << std::endl;
+            std::cerr << errorMessage(e.err()) << std::endl;
+            return EXIT_FAILURE;
+        } catch (std::exception const &e) {
+            std::cerr << argv[0] << " " << args.program << ": " << e.what() << std::endl;
+            return EXIT_FAILURE;
+        }
     } catch (std::out_of_range const &e) {
         std::cerr << "Unsupported subcommand: " << command << std::endl;
         std::cerr << "Supported commands:" << std::endl;
         for (auto& pair : TripleA2::CommandRegistry::get()) {
             std::cerr << "  " << pair.first << std::endl;
         }
-    } catch (cl::Error const &e) {
-        std::cerr << "caught cl::Error: " << e.what() << std::endl;
-        std::cerr << errorMessage(e.err()) << std::endl;
-        return EXIT_FAILURE;
-    } catch (std::exception const &e) {
-        std::cerr << argv[0] << " " << args.program << ": " << e.what() << std::endl;
-        return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;
