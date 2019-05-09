@@ -2,6 +2,7 @@
 #include <CL/cl.hpp>
 
 #include "common.hh"
+#include "errors.hh"
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -90,7 +91,9 @@ cl::Program get_program(
         os << endl;
         return cl::Program(context, devices, binaries);
     } catch (cl::Error& error) {
-        cerr << "Loading binary failed: " << error.what() << endl;
+        cerr << "Loading binary failed: " << error.what() << endl
+             << "Error code: " << error.err() << endl
+             << "Error message: " << errorMessage(error.err()) << endl;
         exit(EXIT_FAILURE);
     }
 }
