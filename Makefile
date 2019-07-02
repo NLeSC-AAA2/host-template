@@ -8,10 +8,17 @@ LIB_DIR:=$(BUILD_ROOT)/lib
 EXE_DIR:=$(BUILD_ROOT)
 KERNEL_DIR:=$(BUILD_ROOT)/kernels
 
+ifdef ALTERAOCLSDKROOT
+SDKROOT:=${ALTERAOCLSDKROOT}
+else
+SDKROOT:=${INTELOCLSDKROOT}
+endif
+
 CXX:=g++
-CXXFLAGS:=-std=c++14 -Wall -pedantic -O3 -I$(ROOTDIR)/vendor -iquote $(ROOTDIR)/include
+CXXFLAGS:=-std=c++14 -Wall -pedantic -O3 -I$(ROOTDIR)/vendor \
+    -iquote $(ROOTDIR)/include -isystem$(SDKROOT)/host/include/
 AOC:=aoc
-AOCFLAGS:=-I${ALTERAOCLSDKROOT}/include/kernel_headers
+AOCFLAGS:=-I${SDKROOT}/include/kernel_headers
 LD:=g++
 
 all: build device-emulator
