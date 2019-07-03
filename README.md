@@ -9,7 +9,7 @@ Prepare the environment to contain the OpenCL Altera or Intel FPGA SDK.
 ```
 module load prun
 module load prun-slurm
-module load opencl-altera/18.1.0.222
+module load opencl-altera/latest
 ```
 
 Build this host code using `make`.
