@@ -8,6 +8,8 @@ $(LIB_DIR)/libfft.a: $(ofiles)
 
 device: $(KERNEL_DIR)/fft.aocx
 
-device-emulator: $(KERNEL_DIR)/fft.aocr
+report: $(KERNEL_DIR)/fft.aocr
+
+emulator: $(KERNEL_DIR)/fft.emulator.aocr
 
 $(TARGET): $(LIB_DIR)/libfft.a $(KERNEL_DIR)/fft.aocr

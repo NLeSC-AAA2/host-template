@@ -21,11 +21,13 @@ AOC:=aoc
 AOCFLAGS:=-I${SDKROOT}/include/kernel_headers
 LD:=g++
 
-all: build device-emulator
+all: build report
 
 device:
 
-device-emulator:
+report:
+
+emulator:
 
 define make-dir =
 $(PRINTF) " MKDIR\t$(patsubst $(ROOTDIR)/%/,%,$(@))\n"

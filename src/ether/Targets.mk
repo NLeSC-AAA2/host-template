@@ -7,6 +7,8 @@ $(LIB_DIR)/libether.a: $(ofiles)
 
 device: $(KERNEL_DIR)/ether.aocx
 
-device-emulator: $(KERNEL_DIR)/ether.aocr
+report: $(KERNEL_DIR)/ether.aocr
+
+emulator: $(KERNEL_DIR)/ether.emulator.aocr
 
 $(TARGET): $(LIB_DIR)/libether.a $(KERNEL_DIR)/ether.aocr
