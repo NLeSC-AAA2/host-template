@@ -6,7 +6,8 @@ ROOTDIR?=$(abspath $(CURDIR))
 BUILD_ROOT:=$(ROOTDIR)/build
 LIB_DIR:=$(BUILD_ROOT)/lib
 EXE_DIR:=$(BUILD_ROOT)
-KERNEL_DIR:=$(BUILD_ROOT)/kernels
+EMULATOR_KERNEL_DIR:=$(BUILD_ROOT)/kernels/emulator
+DEVICE_KERNEL_DIR:=$(BUILD_ROOT)/kernels/device
 
 ifdef ALTERAOCLSDKROOT
 SDKROOT:=${ALTERAOCLSDKROOT}
@@ -34,7 +35,8 @@ $(PRINTF) " MKDIR\t$(patsubst $(ROOTDIR)/%/,%,$(@))\n"
 $(AT)mkdir -p $@
 endef
 
-$(LIB_DIR)/ $(BUILD_ROOT)/ $(KERNEL_DIR): ; $(make-dir)
+$(LIB_DIR)/ $(BUILD_ROOT)/ $(EMULATOR_KERNEL_DIR) $(DEVICE_KERNEL_DIR):
+	$(make-dir)
 
 build: $(EXE_DIR)/host-template $(EXE_DIR)/run-tests
 

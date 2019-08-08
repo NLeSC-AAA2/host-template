@@ -5,10 +5,11 @@ $(BUILD_DIR)/%.o: CXXFLAGS+=$(shell aocl compile-config)
 
 $(LIB_DIR)/libether.a: $(ofiles)
 
-device: $(KERNEL_DIR)/ether.aocx
+device: $(DEVICE_KERNEL_DIR)/ether.aocx
 
-report: $(KERNEL_DIR)/ether.aocr
+report: $(DEVICE_KERNEL_DIR)/ether.aocr
 
-emulator: $(KERNEL_DIR)/ether.emulator.aocr
+emulator: $(EMULATOR_KERNEL_DIR)/ether.aocr
 
-$(TARGET): $(LIB_DIR)/libether.a $(KERNEL_DIR)/ether.aocr
+$(TARGET): $(LIB_DIR)/libether.a $(DEVICE_KERNEL_DIR)/ether.aocr \
+    $(EMULATOR_KERNEL_DIR)/ether.aocr

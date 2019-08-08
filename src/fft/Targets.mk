@@ -6,10 +6,11 @@ $(BUILD_DIR)/%.o: CXXFLAGS+=$(shell aocl compile-config) \
 
 $(LIB_DIR)/libfft.a: $(ofiles)
 
-device: $(KERNEL_DIR)/fft.aocx
+device: $(DEVICE_KERNEL_DIR)/fft.aocx
 
-report: $(KERNEL_DIR)/fft.aocr
+report: $(DEVICE_KERNEL_DIR)/fft.aocr
 
-emulator: $(KERNEL_DIR)/fft.emulator.aocr
+emulator: $(EMULATOR_KERNEL_DIR)/fft.aocr
 
-$(TARGET): $(LIB_DIR)/libfft.a $(KERNEL_DIR)/fft.aocr
+$(TARGET): $(LIB_DIR)/libfft.a $(DEVICE_KERNEL_DIR)/fft.aocr \
+    $(EMULATOR_KERNEL_DIR)/fft.aocr
