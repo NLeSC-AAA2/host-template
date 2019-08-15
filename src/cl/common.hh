@@ -68,3 +68,26 @@ void set_args(cl::Kernel &k, Args &&...args)
     set_args_n<0>(k, std::forward<Args>(args)...);
 }
 
+namespace TripleA2
+{
+class Kernel
+{
+    cl::Kernel kernel;
+    cl::CommandQueue queue;
+    cl::Event event;
+
+    static cl::Context getContext(const cl::Program& prog);
+
+  public:
+    Kernel(const cl::Program& prog, std::string name);
+
+    template<typename... Args>
+    void operator()(Args&&... args)
+    {
+        set_args(kernel, std::forward<Args>(args)...);
+        queue.enqueueTask(kernel, nullptr, &event);
+    }
+
+    void finish();
+};
+}

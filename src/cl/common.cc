@@ -121,3 +121,23 @@ double compute_runtime(
     runtime +=   end.getProfilingInfo<CL_PROFILING_COMMAND_START>();
     return runtime * 1e-9;
 }
+
+namespace TripleA2
+{
+cl::Context
+Kernel::getContext(const cl::Program& prog)
+{
+    cl::Context result;
+    prog.getInfo(CL_PROGRAM_CONTEXT, &result);
+    return result;
+}
+
+Kernel::Kernel(const cl::Program& prog, std::string name)
+    : kernel(prog, name.c_str())
+    , queue(getContext(prog))
+{}
+
+void
+Kernel::finish()
+{ event.wait(); }
+}
