@@ -75,9 +75,12 @@ void fir(const argagg::parser_results& args)
         result = queue.enqueueMapBuffer(input, CL_TRUE, CL_MAP_WRITE, 0, inputSamples);
         cl_char *inputVals = static_cast<cl_char*>(result);
 
-        for (int chan = 0; chan < NR_CHANNELS; chan++) {
+        int j = 0;
+        for (int chan = 0; chan < NR_CHANNELS/VECTOR_SIZE; chan++) {
             for (int tap = 0; tap < NR_TAPS; tap++) {
-                filterVals[(chan * NR_TAPS) + tap] = weights[chan][tap];
+                for (int i = 0; i < VECTOR_SIZE; i++) {
+                    filterVals[j++] = weights[(chan * VECTOR_SIZE) + i][tap];
+                }
             }
         }
 
@@ -106,13 +109,18 @@ void fir(const argagg::parser_results& args)
 
     {
         void *result = queue.enqueueMapBuffer(output, CL_TRUE, CL_MAP_READ, 0, outputSize);
+        bool correct = true;
         cl_short* outputVals = static_cast<cl_short*>(result);
         for (int i = 0; i < inputSamples; i++) {
             if (outputVals[i] != outputData.at(i)) {
-                std::cerr << "Mismatch! Expected: " << outputData[i]
-                          << " Got: " << outputVals[i] << std::endl;
+                correct = false;
+                std::cerr << "Mismatch at index " << i << "! Expected: "
+                          << outputData[i] << " Got: " << outputVals[i]
+                          << std::endl;
             }
         }
+
+        if (correct) std::cout << "Correct!" << std::endl;
 
         queue.enqueueUnmapMemObject(output, outputVals);
         queue.finish();
