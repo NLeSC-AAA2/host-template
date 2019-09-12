@@ -8,9 +8,10 @@ $(LIB_DIR)/libfft.a: $(ofiles)
 
 device: $(DEVICE_KERNEL_DIR)/fft.aocx
 
-report: $(DEVICE_KERNEL_DIR)/fft.aocr
+report: $(DEVICE_KERNEL_DIR)/fft.aocr $(DEVICE_KERNEL_DIR)/fft20.aocr
 
-emulator: $(EMULATOR_KERNEL_DIR)/fft.aocr
+emulator: $(EMULATOR_KERNEL_DIR)/fft.aocr $(EMULATOR_KERNEL_DIR)/fft20.aocr
 
 $(TARGET): $(LIB_DIR)/libfft.a $(DEVICE_KERNEL_DIR)/fft.aocr \
-    $(EMULATOR_KERNEL_DIR)/fft.aocr
+    $(EMULATOR_KERNEL_DIR)/fft.aocr \
+    $(EMULATOR_KERNEL_DIR)/fft20.aocr
