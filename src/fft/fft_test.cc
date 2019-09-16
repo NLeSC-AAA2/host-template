@@ -4,6 +4,7 @@
 #include <gsl/span>
 #include <iostream>
 #include <string>
+#include <numeric>
 
 #include <random>
 #include <thread>
@@ -11,8 +12,7 @@
 #include "../cl/cl.hh"
 #include "command.hh"
 #include "validation.hh"
-
-#define M 32*32
+#include "arg-vector.hh"
 
 namespace
 {
@@ -31,12 +31,14 @@ void randomize_data(gsl::span<std::complex<float>> data)
     }
 }
 
+/*
 void print_data(gsl::span<std::complex<float>> data)
 {
     for (auto const &z : data) {
         std::cout << z.real() << " " << z.imag() << std::endl;
     }
 }
+*/
 
 void enqueue(
     cl::CommandQueue &queue,
@@ -46,14 +48,26 @@ void enqueue(
     queue.enqueueTask(kernel, NULL, &event);
 }
 
+template <typename T>
+inline T product(std::vector<T> const &v)
+{
+    return std::accumulate(
+        std::begin(v), std::end(v), 1, std::multiplies<T>());
+}
+
 void fft_test(const argagg::parser_results& args)
 {
     if (!args["kernel"]) {
         throw std::runtime_error("-k/--kernel option is required");
     }
 
+    if (!args["shape"]) {
+        throw std::runtime_error("-s/--shape option is required");
+    }
+
     std::string const &filename = args["kernel"].as<std::string>();
-    unsigned fft_size = M;
+    std::vector<int> shape = args["shape"].as<std::vector<int>>();
+    unsigned fft_size = static_cast<unsigned>(product(shape));
     unsigned repeats = args["repeat"].as<unsigned>(100);
     unsigned block_size = args["block"].as<unsigned>(10);
     unsigned data_size = fft_size * block_size,
@@ -115,7 +129,6 @@ void fft_test(const argagg::parser_results& args)
         double seconds = (stop - start) / 1e9;
         timings.push_back(seconds);
 
-        std::vector<int> shape = {32, 32};
         Errors err = validate_fft(shape, block_size, input_data, output_data);
         std::cout << seconds << " " << err.abs << " " << err.rel << std::endl;
     }
@@ -131,6 +144,8 @@ void fft_test(const argagg::parser_results& args)
 argagg::parser argparser {{
     { "kernel", {"-k", "--kernel"},
         ".aocx file to load kernel from", 1 },
+    { "shape", {"-s", "--shape"},
+        "shape of fft; separate values by any non-number non-whitespace character.", 1 },
     { "block", {"-b", "--block"},
         "(10) block size: number of ffts per go", 1 },
     { "repeat", {"-r", "--repeat"},
