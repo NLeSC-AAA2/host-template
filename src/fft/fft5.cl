@@ -25,82 +25,73 @@ channel float2 in_channel, out_channel;
  * 21 stack variables, 4 constants, and 20 memory accesses
  */
 void
-notw_5 (const R * ri, const R * ii, R * ro, R * io, stride is, stride os,
-        INT v, INT ivs, INT ovs)
+notw_5 (const R * ri, const R * ii, R * ro, R * io, stride is, stride os)
 {
   DK (KP250000000, +0.250000000000000000000000000000000000000000000);
   DK (KP587785252, +0.587785252292473129168705954639072768597652438);
   DK (KP951056516, +0.951056516295153572116439333379382143405698634);
   DK (KP559016994, +0.559016994374947424102293417182819058860154590);
   {
-    INT i;
-    #pragma ivdep
-    for (i = v; i > 0;
-         i = i - 1, ri = ri + ivs, ii = ii + ivs, ro = ro + ovs, io =
-         io + ovs, MAKE_VOLATILE_STRIDE (20, is), MAKE_VOLATILE_STRIDE (20,
-                                                                        os))
-      {
-        E T1, To, T8, Tt, T9, Ts, Te, Tp, Th, Tn;
-        T1 = ri[0];
-        To = ii[0];
-        {
-          E T2, T3, T4, T5, T6, T7;
-          T2 = ri[WS (is, 1)];
-          T3 = ri[WS (is, 4)];
-          T4 = T2 + T3;
-          T5 = ri[WS (is, 2)];
-          T6 = ri[WS (is, 3)];
-          T7 = T5 + T6;
-          T8 = T4 + T7;
-          Tt = T5 - T6;
-          T9 = KP559016994 * (T4 - T7);
-          Ts = T2 - T3;
-        }
-        {
-          E Tc, Td, Tl, Tf, Tg, Tm;
-          Tc = ii[WS (is, 1)];
-          Td = ii[WS (is, 4)];
-          Tl = Tc + Td;
-          Tf = ii[WS (is, 2)];
-          Tg = ii[WS (is, 3)];
-          Tm = Tf + Tg;
-          Te = Tc - Td;
-          Tp = Tl + Tm;
-          Th = Tf - Tg;
-          Tn = KP559016994 * (Tl - Tm);
-        }
-        ro[0] = T1 + T8;
-        io[0] = To + Tp;
-        {
-          E Ti, Tk, Tb, Tj, Ta;
-          Ti = FMA (KP951056516, Te, KP587785252 * Th);
-          Tk = FNMS (KP587785252, Te, KP951056516 * Th);
-          Ta = FNMS (KP250000000, T8, T1);
-          Tb = T9 + Ta;
-          Tj = Ta - T9;
-          ro[WS (os, 4)] = Tb - Ti;
-          ro[WS (os, 3)] = Tj + Tk;
-          ro[WS (os, 1)] = Tb + Ti;
-          ro[WS (os, 2)] = Tj - Tk;
-        }
-        {
-          E Tu, Tv, Tr, Tw, Tq;
-          Tu = FMA (KP951056516, Ts, KP587785252 * Tt);
-          Tv = FNMS (KP587785252, Ts, KP951056516 * Tt);
-          Tq = FNMS (KP250000000, Tp, To);
-          Tr = Tn + Tq;
-          Tw = Tq - Tn;
-          io[WS (os, 1)] = Tr - Tu;
-          io[WS (os, 3)] = Tw - Tv;
-          io[WS (os, 4)] = Tu + Tr;
-          io[WS (os, 2)] = Tv + Tw;
-        }
-      }
+    E T1, To, T8, Tt, T9, Ts, Te, Tp, Th, Tn;
+    T1 = ri[0];
+    To = ii[0];
+    {
+      E T2, T3, T4, T5, T6, T7;
+      T2 = ri[WS (is, 1)];
+      T3 = ri[WS (is, 4)];
+      T4 = T2 + T3;
+      T5 = ri[WS (is, 2)];
+      T6 = ri[WS (is, 3)];
+      T7 = T5 + T6;
+      T8 = T4 + T7;
+      Tt = T5 - T6;
+      T9 = KP559016994 * (T4 - T7);
+      Ts = T2 - T3;
+    }
+    {
+      E Tc, Td, Tl, Tf, Tg, Tm;
+      Tc = ii[WS (is, 1)];
+      Td = ii[WS (is, 4)];
+      Tl = Tc + Td;
+      Tf = ii[WS (is, 2)];
+      Tg = ii[WS (is, 3)];
+      Tm = Tf + Tg;
+      Te = Tc - Td;
+      Tp = Tl + Tm;
+      Th = Tf - Tg;
+      Tn = KP559016994 * (Tl - Tm);
+    }
+    ro[0] = T1 + T8;
+    io[0] = To + Tp;
+    {
+      E Ti, Tk, Tb, Tj, Ta;
+      Ti = FMA (KP951056516, Te, KP587785252 * Th);
+      Tk = FNMS (KP587785252, Te, KP951056516 * Th);
+      Ta = FNMS (KP250000000, T8, T1);
+      Tb = T9 + Ta;
+      Tj = Ta - T9;
+      ro[WS (os, 4)] = Tb - Ti;
+      ro[WS (os, 3)] = Tj + Tk;
+      ro[WS (os, 1)] = Tb + Ti;
+      ro[WS (os, 2)] = Tj - Tk;
+    }
+    {
+      E Tu, Tv, Tr, Tw, Tq;
+      Tu = FMA (KP951056516, Ts, KP587785252 * Tt);
+      Tv = FNMS (KP587785252, Ts, KP951056516 * Tt);
+      Tq = FNMS (KP250000000, Tp, To);
+      Tr = Tn + Tq;
+      Tw = Tq - Tn;
+      io[WS (os, 1)] = Tr - Tu;
+      io[WS (os, 3)] = Tw - Tv;
+      io[WS (os, 4)] = Tu + Tr;
+      io[WS (os, 2)] = Tv + Tw;
+    }
   }
 }
 
 void fft_5(float const *input, float *output) {
-    notw_5(input, input + 1, output, output + 1, 2, 2, 1, 0, 0);
+    notw_5(input, input + 1, output, output + 1, 2, 2);
 }
 
 __kernel
