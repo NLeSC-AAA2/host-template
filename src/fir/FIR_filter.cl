@@ -11,37 +11,56 @@ constant int TAPS_CHANNELS_MULT = NR_TAPS * NR_CHANNEL_CHUNKS;
 channel char16 in_channel;
 channel short16 fft_channel;
 
+short16
+computeOutput
+( const short16 * restrict filterWeightsCache
+, short16 * restrict inputShiftReg
+, short16 * restrict outputShiftReg
+, unsigned weightOffset
+, short16 new
+)
+{
+    short16 result = 0;
+
+    for (unsigned tap = 0; tap < NR_TAPS; tap++) {
+        result += inputShiftReg[tap] * filterWeightsCache[weightOffset + tap];
+    }
+
+    for (unsigned tap = NR_TAPS; tap < TAPS_CHANNELS_MULT; tap++) {
+        outputShiftReg[tap - NR_TAPS] = inputShiftReg[tap];
+    }
+
+    for (unsigned tap = 1; tap < NR_TAPS; tap++) {
+        outputShiftReg[TAPS_CHANNELS_MULT - NR_TAPS + tap - 1] = inputShiftReg[tap];
+    }
+
+    outputShiftReg[TAPS_CHANNELS_MULT - 1] = new;
+    return result;
+}
+
 kernel void
 __attribute__((max_global_work_dim(0)))
 FIR_filter
 (constant const short * restrict filterWeights, int chunkCount)
 {
     short16 inputShiftReg[TAPS_CHANNELS_MULT];
+    short16 inputShiftReg2[TAPS_CHANNELS_MULT];
     short16 filterWeightsCache[TAPS_CHANNELS_MULT];
 
-    #pragma loop_coalesce 2
-    for (int i = 0; i < NR_TAPS; i++) {
-        for (int j = 0; j < NR_CHANNEL_CHUNKS; j++) {
-            inputShiftReg[(j * NR_TAPS) + i] = 0;
-            filterWeightsCache[(j * NR_TAPS) + i] = vload16(j*NR_TAPS, filterWeights);
-        }
+    for (int i = 0; i < TAPS_CHANNELS_MULT; i++) {
+        inputShiftReg[i] = 0;
+        filterWeightsCache[i] = vload16(i, filterWeights);
     }
 
-    for (int channelIdx = 0; channelIdx < NR_CHANNEL_CHUNKS; channelIdx++) {
+    for (int i = 0; i < chunkCount; i++) {
+        const unsigned channelIdx = i % NR_CHANNEL_CHUNKS;
+        const unsigned tapOffset = (channelIdx * NR_TAPS);
+        const bool odd = i & 1;
         short16 result = 0;
+        short16 new = convert_short16(read_channel_intel(in_channel));
 
-        #pragma unroll
-        for (unsigned tap = 0; tap < NR_TAPS; tap++) {
-            short16 v = filterWeightsCache[(channelIdx * VECTOR_SIZE) + tap];
-            result += inputShiftReg[(channelIdx * VECTOR_SIZE) + tap] * v;
-        }
-
-        #pragma unroll
-        for (unsigned i = 1; i < NR_TAPS; i++) {
-            inputShiftReg[(channelIdx * VECTOR_SIZE) + (i-1)] = inputShiftReg[(channelIdx * VECTOR_SIZE) + i];
-        }
-
-        inputShiftReg[(channelIdx * VECTOR_SIZE) + (NR_TAPS-1)] = convert_short16(read_channel_intel(in_channel));
+        if (!odd) result = computeOutput(filterWeightsCache, inputShiftReg, inputShiftReg2, tapOffset, new);
+        else result = computeOutput(filterWeightsCache, inputShiftReg2, inputShiftReg, tapOffset, new);
 
         write_channel_intel(fft_channel, result);
     }
