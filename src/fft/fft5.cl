@@ -90,21 +90,24 @@ notw_5 (const R * ri, const R * ii, R * ro, R * io, stride is, stride os)
   }
 }
 
-void fft_5(float const *input, float *output) {
-    notw_5(input, input + 1, output, output + 1, 2, 2);
-}
-
 __kernel
 __attribute__((autorun))
 __attribute__((max_global_work_dim(0)))
 void do_fft_5()
 {
-    float2 a[5], b[5];
-    for (int n = 0; n < 5; n ++)
-	    a[n] = read_channel_intel(in_channel);
-    fft_5((float const *)a, (float *)b);
-    for (int n = 0; n < 5; n ++)
-	    write_channel_intel(out_channel, b[n]);  
+    float ai[5], ar[5], bi[5], br[5];
+    for (int n = 0; n < 5; n ++) {
+        float2 a = read_channel_intel(in_channel);
+	    ar[n] = a.x;
+        ai[n] = a.y;
+    }
+    notw_5(ar, ai, br, bi, 1, 1);
+    for (int n = 0; n < 5; n ++) {
+	    float2 b;
+        b.x = br[n];
+        b.y = bi[n];
+        write_channel_intel(out_channel, b);
+    }
 }
 
 __attribute__((max_global_work_dim(0)))
