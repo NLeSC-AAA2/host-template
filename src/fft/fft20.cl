@@ -40,7 +40,7 @@ __constant float w_10_2[20] = {
  * 9 stack variables, 0 constants, and 8 memory accesses
  */
 void
-twiddle_2 (R * ri, R * ii, __constant R * W, stride rs, INT mb, INT me, INT ms)
+twiddle_2 (R * restrict ri, R * restrict ii, __constant R * restrict W, stride rs, INT mb, INT me, INT ms)
 {
   {
     INT m;
@@ -77,7 +77,7 @@ twiddle_2 (R * ri, R * ii, __constant R * W, stride rs, INT mb, INT me, INT ms)
  * 21 stack variables, 4 constants, and 20 memory accesses
  */
 void
-notw_5 (const R * ri, const R * ii, R * ro, R * io, stride is, stride os,
+notw_5 (const R * restrict ri, const R * restrict ii, R * restrict ro, R * restrict io, stride is, stride os,
         INT v, INT ivs, INT ovs)
 {
   DK (KP250000000, +0.250000000000000000000000000000000000000000000);
@@ -152,12 +152,13 @@ notw_5 (const R * ri, const R * ii, R * ro, R * io, stride is, stride os,
 }
 
 
-void fft_20(float const *input, float *output) {
-    notw_5(input, input + 1, output, output + 1, 8, 2, 2, 4, 10);
-    twiddle_2(output, output + 1, w_5_2, 10, 0, 5, 2);
-    notw_5(input + 2, input + 3, output + 20, output + 21, 8, 2, 2, 4, 10);
-    twiddle_2(output + 20, output + 21, w_5_2, 10, 0, 5, 2);
-    twiddle_2(output, output + 1, w_10_2, 20, 0, 10, 2);
+void fft_20(float const * restrict ri, float const * restrict ii,
+        float * restrict ro, float * restrict io) {
+    notw_5(ri, ii, ro, io, 4, 1, 2, 4, 10);
+    twiddle_2(ro, io, w_5_2, 5, 0, 5, 2);
+    notw_5(ri + 1, ii + 1, ro + 10, io + 10, 4, 1, 2, 4, 10);
+    twiddle_2(ro + 10, io + 10, w_5_2, 5, 0, 5, 2);
+    twiddle_2(ro, io, w_10_2, 10, 0, 10, 2);
 }
 
 
@@ -166,12 +167,25 @@ __attribute__((autorun))
 __attribute__((max_global_work_dim(0)))
 void do_fft_20()
 {
-    float2 a[20], b[20];
-    for (int n = 0; n < 20; n ++)
-	    a[n] = read_channel_intel(in_channel);
-    fft_20((float const *)a, (float *)b);
-    for (int n = 0; n < 20; n ++)
-	    write_channel_intel(out_channel, b[n]);  
+    float ai[20], ar[20], bi[20], br[20];
+    for (int n = 0; n < 20; n ++) {
+        float2 a = read_channel_intel(in_channel);
+	    ar[n] = a.x;
+        ai[n] = a.y;
+    }
+    fft_20(ar, ai, br, bi);
+    for (int n = 0; n < 20; n ++) {
+	    float2 b;
+        b.x = br[n];
+        b.y = bi[n];
+        write_channel_intel(out_channel, b);
+    }
+    // float2 a[20], b[20];
+    // for (int n = 0; n < 20; n ++)
+	//     a[n] = read_channel_intel(in_channel);
+    // fft_20((float const *)a, (float *)b);
+    // for (int n = 0; n < 20; n ++)
+	//     write_channel_intel(out_channel, b[n]);  
 }
 
 __attribute__((max_global_work_dim(0)))

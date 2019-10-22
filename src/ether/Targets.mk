@@ -5,7 +5,7 @@ $(BUILD_DIR)/%.o: CXXFLAGS+=$(shell aocl compile-config)
 
 $(LIB_DIR)/libether.a: $(ofiles)
 
-device: $(DEVICE_KERNEL_DIR)/ether.aocx
+# device: $(DEVICE_KERNEL_DIR)/ether.aocx
 
 report: $(DEVICE_KERNEL_DIR)/ether.aocr
 

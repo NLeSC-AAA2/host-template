@@ -5,7 +5,7 @@ $(BUILD_DIR)/%.o: CXXFLAGS+=$(shell aocl compile-config)
 
 $(LIB_DIR)/libfir.a: $(ofiles)
 
-device: $(DEVICE_KERNEL_DIR)/FIR_filter.aocx
+# device: $(DEVICE_KERNEL_DIR)/FIR_filter.aocx
 
 report: $(DEVICE_KERNEL_DIR)/FIR_filter.aocr
 
