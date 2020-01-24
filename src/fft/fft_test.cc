@@ -45,7 +45,7 @@ void enqueue(
     cl::Kernel const &kernel,
     cl::Event &event)
 {
-    queue.enqueueTask(kernel, NULL, &event);
+    queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(1), cl::NullRange, nullptr, &event);
 }
 
 template <typename T>
