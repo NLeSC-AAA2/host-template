@@ -1,4 +1,3 @@
-#include <CL/cl.hpp>
 #define FMT_HEADER_ONLY
 #include <fmt/format.h>
 
