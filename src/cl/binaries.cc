@@ -9,7 +9,7 @@ cl::Program createProgramFromBinaries(
   std::ifstream ifs(name, std::ios::in | std::ios::binary);
   std::string str((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
 
-  cl::Program::Binaries binaries{std::make_pair(str.c_str(), str.length())};
+  cl::Program::Binaries binaries{std::vector<unsigned char>(str.begin(), str.end())};
   return cl::Program(context, devices, binaries);
 } 
 
