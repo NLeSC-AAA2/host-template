@@ -1,5 +1,7 @@
 #pragma once
+#define __CL_ENABLE_EXCEPTIONS
 #include <CL/cl.hpp>
+
 #include <vector>
 #include <string>
 #include <utility>
@@ -85,7 +87,7 @@ class Kernel
     void operator()(Args&&... args)
     {
         set_args(kernel, std::forward<Args>(args)...);
-        queue.enqueueTask(kernel, nullptr, &event);
+        queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(1), cl::NullRange, nullptr, &event);
     }
 
     void finish();

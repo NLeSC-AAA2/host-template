@@ -1,6 +1,7 @@
 #pragma once
-#include <CL/cl.hpp>
 #include <string>
+
+#include "common.hh"
 
 extern std::string errorMessage(cl_int error);
 

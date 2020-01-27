@@ -1,12 +1,11 @@
-#define __CL_ENABLE_EXCEPTIONS
-#include <CL/cl.hpp>
-
-#include "common.hh"
-#include "errors.hh"
 #include <iostream>
 #include <sstream>
 #include <fstream>
 #include <iomanip>
+
+#include "common.hh"
+#include "binaries.hh"
+#include "errors.hh"
 
 using namespace std;
 
@@ -83,13 +82,11 @@ cl::Program get_program(
 {
     os << ">>> Loading program from binary: " << filename << endl;
     try {
-        ifstream ifs(filename, ios::in | ios::binary);
-        string str((istreambuf_iterator<char>(ifs)), istreambuf_iterator<char>());
-        cl::Program::Binaries binaries(1, std::make_pair(str.c_str(), str.length()));
-        vector<cl::Device> devices;
+        std::vector<cl::Device> devices;
         devices.push_back(device);
+        auto result = createProgramFromBinaries(context, devices, filename);
         os << endl;
-        return cl::Program(context, devices, binaries);
+        return result;
     } catch (cl::Error& error) {
         cerr << "Loading binary failed: " << error.what() << endl
              << "Error code: " << error.err() << endl

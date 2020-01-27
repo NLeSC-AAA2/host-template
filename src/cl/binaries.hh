@@ -1,7 +1,8 @@
 #pragma once
-#include <CL/cl.hpp>
 #include <vector>
 #include <string>
+
+#include "common.hh"
 
 extern cl::Program createProgramFromBinaries(
         cl::Context &context,

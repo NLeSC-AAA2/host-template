@@ -1,6 +1,5 @@
 #pragma once
-#include <CL/cl.hpp>
-#include <vector>
+#include "common.hh"
 
 extern void createContext(cl::Context &context, std::vector<cl::Device> &devices);
 
