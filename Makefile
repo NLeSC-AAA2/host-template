@@ -51,7 +51,7 @@ $(LIB_DIR)/%.a: | $(LIB_DIR)/
 	$(PRINTF) " AR\t$(patsubst $(LIB_DIR)/%,%,$@)\n"
 	$(AT)$(AR) rcs $@ $^
 
-V = 0
+V = 1
 AT_0 := @
 AT_1 :=
 AT = $(AT_$(V))

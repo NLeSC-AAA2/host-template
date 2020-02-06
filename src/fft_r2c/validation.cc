@@ -47,7 +47,7 @@ Errors validate_fft_r2c
         max.abs = std::max(abs_err, max.abs);
         max.rel = std::max(rel_err, max.rel);
 
-        std::cout << i << " " << ground_truth[i] << " " << output[i] << "\t" << abs_err << "\t" << rel_err << std::endl;
+        //std::cout << i << " " << ground_truth[i] << " " << output[i] << "\t" << abs_err << "\t" << rel_err << std::endl;
 
     }
     return max;

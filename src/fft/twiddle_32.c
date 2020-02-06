@@ -5,8 +5,8 @@
  * (or, 340 additions, 114 multiplications, 94 fused multiply/add),
  * 96 stack variables, 7 constants, and 128 memory accesses
  */
-void
-twiddle_32 (R * ri, R * ii, __constant R * W, stride rs, INT mb, INT me, INT ms)
+inline void
+twiddle_32 (R * restrict ri, R * restrict ii, __constant R * restrict W, stride rs, INT mb, INT me, INT ms)
 {
   DK (KP195090322, +0.195090322016128267848284868477022240927691618);
   DK (KP980785280, +0.980785280403230449126182236134239036973933731);

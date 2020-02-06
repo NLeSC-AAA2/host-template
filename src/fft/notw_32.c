@@ -5,8 +5,8 @@
  * (or, 340 additions, 52 multiplications, 32 fused multiply/add),
  * 100 stack variables, 7 constants, and 128 memory accesses
  */
-void
-notw_32 (const R * ri, const R * ii, R * ro, R * io, stride is, stride os,
+inline void
+notw_32 (const R * restrict ri, const R * restrict ii, R * restrict ro, R * restrict io, stride is, stride os,
 	 INT v, INT ivs, INT ovs)
 {
   DK (KP831469612, +0.831469612302545237078788377617905756738560812);

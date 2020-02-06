@@ -10,83 +10,65 @@ channel float out_channel;
 //#include "twiddle_32.c"
 //#include "notw_32.c"
 
-#include "fft16.h"
+//#include "fft512_reorder.h"
+#include "fft512_loop.h"
 
-#define N 32
+#include "sincos512.h"
 
-__constant float cos16[16] = {
-1.00000000000000000000,
-0.98078528040323043058,
-0.92387953251128673848,
-0.83146961230254523567,
-0.70710678118654757274,
-0.55557023301960228867,
-0.38268343236508983729,
-0.19509032201612833135,
-0.00000000000000006123,
--0.19509032201612819257,
--0.38268343236508972627,
--0.55557023301960195560,
--0.70710678118654746172,
--0.83146961230254534669,
--0.92387953251128673848,
--0.98078528040323043058
-};
+#define N 1024
 
-__constant float sin16[16] = {
-0.00000000000000000000,
-0.19509032201612824808,
-0.38268343236508978178,
-0.55557023301960217765,
-0.70710678118654746172,
-0.83146961230254523567,
-0.92387953251128673848,
-0.98078528040323043058,
-1.00000000000000000000,
-0.98078528040323043058,
-0.92387953251128673848,
-0.83146961230254545772,
-0.70710678118654757274,
-0.55557023301960217765,
-0.38268343236508989280,
-0.19509032201612860891
-};
+
+
+
+
+
+
 
 
 __kernel
 __attribute__((autorun))
 __attribute__((max_global_work_dim(0)))
-void do_fft_32()
+void do_fft_1024()
 {
-    float a[N], b[2*N], x[N];
+    float a[N], b[N], x[N];
     for (int n = 0; n < N; n ++) {
         a[n] = (float) read_channel_intel(in_channel);
     }
 
-    fft_16((const float *)a, (float *)b); // 16-point C2C FFT
-
+    fft((const float *)a, (float *)b); // 512-point FFT
 
     //post process to complete the R2C transform
     float2 *z = (float2 *)b;
     float2 *X = (float2 *)x;
-    for (int i = 0; i <= N/2; i++) {
+    #pragma ivdep
+    for (int i = 1; i < N/2; i++) {
         float a, b, c, d;
 
+        a = z[i].x + z[(N/2)-i].x;
+        b = z[i].x - z[(N/2)-i].x;
+        c = z[i].y + z[(N/2)-i].y;
+        d = z[i].y - z[(N/2)-i].y;
+
+
+        X[i].x = 0.5 * (a + cos512[i]*c - sin512[i]*b);
+        X[i].y = 0.5 * (d - sin512[i]*c - cos512[i]*b);
+
+/*
         a = ( z[i].x + z[(N/2)-i].x ) / 2.0f;
         b = ( z[i].x - z[(N/2)-i].x ) / 2.0f;
         c = ( z[i].y + z[(N/2)-i].y ) / 2.0f;
         d = ( z[i].y - z[(N/2)-i].y ) / 2.0f;
 
+        X[i].x = a + cos512[i]*c - sin512[i]*b;
+        X[i].y = d - sin512[i]*c - cos512[i]*b;
+*/
 
-        X[i].x = a + cos16[i]*c - sin16[i]*b;
-        X[i].y = d - sin16[i]*c - cos16[i]*b;
-        
     }
 
-    X[0].x *= 2.0f;
+    X[0].x = z[0].x + cos512[0]*z[0].y - sin512[0]*z[0].x;
     X[0].y = 0.0f;
 
-    for (int n = 0; n < 32; n ++) 
+    for (int n = 0; n < N; n ++) 
         write_channel_intel(out_channel, x[n]);
 }
 
