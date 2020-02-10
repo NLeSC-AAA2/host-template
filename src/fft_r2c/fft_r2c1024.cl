@@ -53,16 +53,6 @@ void do_fft_1024()
         X[i].x = 0.5 * (a + cos512[i]*c - sin512[i]*b);
         X[i].y = 0.5 * (d - sin512[i]*c - cos512[i]*b);
 
-/*
-        a = ( z[i].x + z[(N/2)-i].x ) / 2.0f;
-        b = ( z[i].x - z[(N/2)-i].x ) / 2.0f;
-        c = ( z[i].y + z[(N/2)-i].y ) / 2.0f;
-        d = ( z[i].y - z[(N/2)-i].y ) / 2.0f;
-
-        X[i].x = a + cos512[i]*c - sin512[i]*b;
-        X[i].y = d - sin512[i]*c - cos512[i]*b;
-*/
-
     }
 
     X[0].x = z[0].x + cos512[0]*z[0].y - sin512[0]*z[0].x;
