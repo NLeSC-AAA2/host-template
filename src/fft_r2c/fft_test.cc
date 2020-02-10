@@ -67,8 +67,8 @@ void fft_test_r2c(const argagg::parser_results& args)
     std::string const &filename = args["kernel"].as<std::string>();
     std::vector<int> shape = args["shape"].as<std::vector<int>>();
     unsigned fft_size = static_cast<unsigned>(product(shape));
-    unsigned repeats = args["repeat"].as<unsigned>(100);
-    unsigned block_size = args["block"].as<unsigned>(10);
+    unsigned repeats = args["repeat"].as<unsigned>(5);
+    unsigned block_size = args["block"].as<unsigned>(1);
     unsigned data_size = fft_size * block_size,
              byte_size_in = data_size * sizeof(short),
              byte_size_out = data_size * sizeof(float); //complex numbers but half the length
