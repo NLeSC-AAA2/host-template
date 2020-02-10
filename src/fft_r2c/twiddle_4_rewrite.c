@@ -11,8 +11,7 @@ twiddle_4 (R * restrict ri, R * restrict ii, __constant R * restrict W, stride r
   {
     INT m;
     #pragma ivdep
-    for (m = mb, W = W + (mb * 6); m < me;
-     m = m + 1, W = W + 6)
+    for (m = mb; m < me; m++)
       {
 
     //E T1,   Tp,   T6,   To,   Tc,   Tk,   Th,   Tl;
@@ -29,8 +28,8 @@ twiddle_4 (R * restrict ri, R * restrict ii, __constant R * restrict W, stride r
       E T9, Tb, T8, Ta;
       T9 = ri[m*ms+WS (rs, (k+1))];
       Tb = ii[m*ms+WS (rs, (k+1))];
-      T8 = W[k*2+0];
-      Ta = W[k*2+1];
+      T8 = W[(m*6)+(k*2)+0];
+      Ta = W[(m*6)+(k*2)+1];
       L[2+k*2] = FMA (T8, T9, Ta * Tb);
       L[3+k*2] = FNMS (Ta, T9, T8 * Tb);
     }

@@ -21,7 +21,7 @@
 #include "twiddle_4_rewrite.c"
 
 
-#include "twiddle_2.c"
+#include "twiddle_2_rewrite.c"
 
 __constant float w_2_256[512] = {
   1.0, 0.0, 0.9999247018391445, 1.2271538285719925e-2, 0.9996988186962042,
