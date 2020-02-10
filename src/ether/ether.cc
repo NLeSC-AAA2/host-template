@@ -47,13 +47,12 @@ void ether(const argagg::parser_results& args)
     { throw std::runtime_error("failed to read packet file"); }
 
     cl::Event event;
-    cl::Kernel kernel(program, "sendUDP");
-    set_args(kernel, device_buf, chunkCount);
+    Kernel kernel(program, "sendUDP");
 
     queue.enqueueCopyBuffer(host_buf, device_buf, 0, 0, paddedPacketSize);
 
-    queue.enqueueTask(kernel, nullptr, &event);
-    queue.finish();
+    kernel(device_buf, chunkCount);
+    kernel.finish();
 
     queue.enqueueUnmapMemObject(host_buf, buffer);
 }
