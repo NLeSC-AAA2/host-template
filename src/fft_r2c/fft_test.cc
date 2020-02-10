@@ -14,19 +14,20 @@
 #include "validation.hh"
 #include "arg-vector.hh"
 
-namespace fft_r2c
+namespace
 {
 
 using namespace TripleA2;
 
-void randomize_data(gsl::span<short> data)
+void randomize_data(gsl::span<std::complex<float>> data)
 {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<float> dist(0.0, 1.0);
+    std::uniform_real_distribution<double> dist(0.0, 1.0);
 
     for (auto &z : data) {
-        z = (short) (32768*dist(gen));
+        z.real(dist(gen));
+        z.imag(dist(gen));
     }
 }
 
@@ -54,7 +55,7 @@ inline T product(std::vector<T> const &v)
         std::begin(v), std::end(v), 1, std::multiplies<T>());
 }
 
-void fft_test_r2c(const argagg::parser_results& args)
+void fft_test(const argagg::parser_results& args)
 {
     if (!args["kernel"]) {
         throw std::runtime_error("-k/--kernel option is required");
@@ -70,8 +71,7 @@ void fft_test_r2c(const argagg::parser_results& args)
     unsigned repeats = args["repeat"].as<unsigned>(5);
     unsigned block_size = args["block"].as<unsigned>(1);
     unsigned data_size = fft_size * block_size,
-             byte_size_in = data_size * sizeof(short),
-             byte_size_out = data_size * sizeof(float); //complex numbers but half the length
+             byte_size = data_size * sizeof(float) * 2;
 
     cl::Context context;
     std::vector<cl::Device> devices;
@@ -81,22 +81,14 @@ void fft_test_r2c(const argagg::parser_results& args)
     cl::CommandQueue source_queue(context, devices[0], CL_QUEUE_PROFILING_ENABLE);
     cl::CommandQueue sink_queue(context, devices[0], CL_QUEUE_PROFILING_ENABLE);
 
-    cl::Buffer device_input_buf(context, CL_MEM_READ_ONLY, byte_size_in);
-    cl::Buffer device_output_buf(context, CL_MEM_WRITE_ONLY, byte_size_out);
+    cl::Buffer device_input_buf(context, CL_MEM_READ_ONLY, byte_size);
+    cl::Buffer device_output_buf(context, CL_MEM_WRITE_ONLY, byte_size);
     cl::Buffer host_input_buf(context,
-            CL_MEM_HOST_WRITE_ONLY | CL_MEM_ALLOC_HOST_PTR, byte_size_in);
+            CL_MEM_HOST_WRITE_ONLY | CL_MEM_ALLOC_HOST_PTR, byte_size);
     cl::Buffer host_output_buf(context,
-            CL_MEM_HOST_READ_ONLY | CL_MEM_ALLOC_HOST_PTR, byte_size_out);
+            CL_MEM_HOST_READ_ONLY | CL_MEM_ALLOC_HOST_PTR, byte_size);
 
-    gsl::span<short> input_data(
-        reinterpret_cast<short*>(
-            source_queue.enqueueMapBuffer(host_input_buf, CL_TRUE, CL_MAP_WRITE, 0, byte_size_in)),
-        data_size);
 
-    gsl::span<std::complex<float>> output_data(
-        reinterpret_cast<std::complex<float>*>(
-            sink_queue.enqueueMapBuffer(host_output_buf, CL_TRUE, CL_MAP_READ, 0, byte_size_out)),
-        data_size);
     
     cl::Kernel source_kernel(program, "source"),
                sink_kernel(program, "sink");
@@ -107,8 +99,14 @@ void fft_test_r2c(const argagg::parser_results& args)
     std::vector<double> timings;
     std::cout << "#  timing(s)    max_diff(epsrel)\n";
     for (unsigned i = 0; i < repeats; ++i) {
+      {
+	gsl::span<std::complex<float>> input_data(
+	    reinterpret_cast<std::complex<float>*>(
+		source_queue.enqueueMapBuffer(host_input_buf, CL_TRUE, CL_MAP_WRITE, 0, byte_size)),
+	    data_size);
         randomize_data(input_data);
-        source_queue.enqueueCopyBuffer(host_input_buf, device_input_buf, 0, 0, byte_size_in);
+        source_queue.enqueueCopyBuffer(host_input_buf, device_input_buf, 0, 0, byte_size);
+      }
 
         std::thread source_thread(enqueue,
             std::ref(source_queue),
@@ -120,7 +118,7 @@ void fft_test_r2c(const argagg::parser_results& args)
             std::ref(sink_event));
         source_thread.join();
         sink_thread.join();
-        sink_queue.enqueueCopyBuffer(device_output_buf, host_output_buf, 0, 0, byte_size_out);
+        sink_queue.enqueueCopyBuffer(device_output_buf, host_output_buf, 0, 0, byte_size);
         source_queue.finish();
         sink_queue.finish();
 
@@ -129,16 +127,25 @@ void fft_test_r2c(const argagg::parser_results& args)
         double seconds = (stop - start) / 1e9;
         timings.push_back(seconds);
 
-        Errors err = validate_fft_r2c(shape, block_size, input_data, output_data);
+	gsl::span<std::complex<float>> input_data(
+	    reinterpret_cast<std::complex<float>*>(
+		source_queue.enqueueMapBuffer(host_input_buf, CL_TRUE, CL_MAP_WRITE, 0, byte_size)),
+	    data_size);
+	gsl::span<std::complex<float>> output_data(
+	    reinterpret_cast<std::complex<float>*>(
+		sink_queue.enqueueMapBuffer(host_output_buf, CL_TRUE, CL_MAP_READ, 0, byte_size)),
+	    data_size);
+
+        Errors err = validate_fft(shape, block_size, input_data, output_data);
+	sink_queue.enqueueUnmapMemObject(host_output_buf, output_data.data());
+	source_queue.enqueueUnmapMemObject(host_input_buf, input_data.data());
+
         std::cout << seconds << " " << err.abs << " " << err.rel << std::endl;
     }
 
     double total = 0.0;
     for (double t : timings) total += t;
     std::cout << "# average runtime = " << total / repeats << " s" << std::endl;
-
-    source_queue.enqueueUnmapMemObject(host_input_buf, input_data.data());
-    sink_queue.enqueueUnmapMemObject(host_output_buf, output_data.data());
 }
 
 argagg::parser argparser {{
@@ -152,5 +159,5 @@ argagg::parser argparser {{
         "(100) send a multitude of data to source", 1 }
 }};
 
-CommandRegistry fftCommand("fft_r2c", std::make_pair(&fft_test_r2c, argparser));
+CommandRegistry fftCommand("fft", std::make_pair(&fft_test, argparser));
 }

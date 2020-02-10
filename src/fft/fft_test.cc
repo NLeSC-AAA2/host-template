@@ -88,15 +88,7 @@ void fft_test(const argagg::parser_results& args)
     cl::Buffer host_output_buf(context,
             CL_MEM_HOST_READ_ONLY | CL_MEM_ALLOC_HOST_PTR, byte_size);
 
-    gsl::span<std::complex<float>> input_data(
-        reinterpret_cast<std::complex<float>*>(
-            source_queue.enqueueMapBuffer(host_input_buf, CL_TRUE, CL_MAP_WRITE, 0, byte_size)),
-        data_size);
 
-    gsl::span<std::complex<float>> output_data(
-        reinterpret_cast<std::complex<float>*>(
-            sink_queue.enqueueMapBuffer(host_output_buf, CL_TRUE, CL_MAP_READ, 0, byte_size)),
-        data_size);
     
     cl::Kernel source_kernel(program, "source"),
                sink_kernel(program, "sink");
@@ -107,8 +99,14 @@ void fft_test(const argagg::parser_results& args)
     std::vector<double> timings;
     std::cout << "#  timing(s)    max_diff(epsrel)\n";
     for (unsigned i = 0; i < repeats; ++i) {
+      {
+	gsl::span<std::complex<float>> input_data(
+	    reinterpret_cast<std::complex<float>*>(
+		source_queue.enqueueMapBuffer(host_input_buf, CL_TRUE, CL_MAP_WRITE, 0, byte_size)),
+	    data_size);
         randomize_data(input_data);
         source_queue.enqueueCopyBuffer(host_input_buf, device_input_buf, 0, 0, byte_size);
+      }
 
         std::thread source_thread(enqueue,
             std::ref(source_queue),
@@ -129,16 +127,25 @@ void fft_test(const argagg::parser_results& args)
         double seconds = (stop - start) / 1e9;
         timings.push_back(seconds);
 
+	gsl::span<std::complex<float>> input_data(
+	    reinterpret_cast<std::complex<float>*>(
+		source_queue.enqueueMapBuffer(host_input_buf, CL_TRUE, CL_MAP_WRITE, 0, byte_size)),
+	    data_size);
+	gsl::span<std::complex<float>> output_data(
+	    reinterpret_cast<std::complex<float>*>(
+		sink_queue.enqueueMapBuffer(host_output_buf, CL_TRUE, CL_MAP_READ, 0, byte_size)),
+	    data_size);
+
         Errors err = validate_fft(shape, block_size, input_data, output_data);
+	sink_queue.enqueueUnmapMemObject(host_output_buf, output_data.data());
+	source_queue.enqueueUnmapMemObject(host_input_buf, input_data.data());
+
         std::cout << seconds << " " << err.abs << " " << err.rel << std::endl;
     }
 
     double total = 0.0;
     for (double t : timings) total += t;
     std::cout << "# average runtime = " << total / repeats << " s" << std::endl;
-
-    source_queue.enqueueUnmapMemObject(host_input_buf, input_data.data());
-    sink_queue.enqueueUnmapMemObject(host_output_buf, output_data.data());
 }
 
 argagg::parser argparser {{
