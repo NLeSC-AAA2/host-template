@@ -11,6 +11,8 @@ $(BUILD_DIR)/%.o: CXXFLAGS+=$(shell aocl compile-config) \
 
 $(LIB_DIR)/libfft_r2c.a: $(ofiles)
 
+device: $(DEVICE_KERNEL_DIR)/fft_r2c32.aocx $(DEVICE_KERNEL_DIR)/fft_r2c1024.aocx
+
 report: $(report_targets)
 
 emulator: $(emulator_targets)

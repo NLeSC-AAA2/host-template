@@ -67,8 +67,8 @@ void fft_test_r2c(const argagg::parser_results& args)
     std::string const &filename = args["kernel"].as<std::string>();
     std::vector<int> shape = args["shape"].as<std::vector<int>>();
     unsigned fft_size = static_cast<unsigned>(product(shape));
-    unsigned repeats = args["repeat"].as<unsigned>(5);
-    unsigned block_size = args["block"].as<unsigned>(1);
+    unsigned repeats = args["repeat"].as<unsigned>(100);
+    unsigned block_size = args["block"].as<unsigned>(10);
     unsigned data_size = fft_size * block_size,
              byte_size_in = data_size * sizeof(short),
              byte_size_out = data_size * sizeof(float); //complex numbers but half the length
@@ -88,16 +88,7 @@ void fft_test_r2c(const argagg::parser_results& args)
     cl::Buffer host_output_buf(context,
             CL_MEM_HOST_READ_ONLY | CL_MEM_ALLOC_HOST_PTR, byte_size_out);
 
-    gsl::span<short> input_data(
-        reinterpret_cast<short*>(
-            source_queue.enqueueMapBuffer(host_input_buf, CL_TRUE, CL_MAP_WRITE, 0, byte_size_in)),
-        data_size);
 
-    gsl::span<std::complex<float>> output_data(
-        reinterpret_cast<std::complex<float>*>(
-            sink_queue.enqueueMapBuffer(host_output_buf, CL_TRUE, CL_MAP_READ, 0, byte_size_out)),
-        data_size);
-    
     cl::Kernel source_kernel(program, "source"),
                sink_kernel(program, "sink");
     set_args(source_kernel, device_input_buf, data_size);
@@ -107,9 +98,14 @@ void fft_test_r2c(const argagg::parser_results& args)
     std::vector<double> timings;
     std::cout << "#  timing(s)    max_diff(epsrel)\n";
     for (unsigned i = 0; i < repeats; ++i) {
+    {
+        gsl::span<short> input_data(
+        reinterpret_cast<short*>(
+            source_queue.enqueueMapBuffer(host_input_buf, CL_TRUE, CL_MAP_WRITE, 0, byte_size_in)),
+        data_size);
         randomize_data(input_data);
         source_queue.enqueueCopyBuffer(host_input_buf, device_input_buf, 0, 0, byte_size_in);
-
+    }
         std::thread source_thread(enqueue,
             std::ref(source_queue),
             std::ref(source_kernel),
@@ -129,7 +125,22 @@ void fft_test_r2c(const argagg::parser_results& args)
         double seconds = (stop - start) / 1e9;
         timings.push_back(seconds);
 
+
+        gsl::span<short> input_data(
+        reinterpret_cast<short*>(
+            source_queue.enqueueMapBuffer(host_input_buf, CL_TRUE, CL_MAP_WRITE, 0, byte_size_in)),
+        data_size);
+
+    gsl::span<std::complex<float>> output_data(
+        reinterpret_cast<std::complex<float>*>(
+            sink_queue.enqueueMapBuffer(host_output_buf, CL_TRUE, CL_MAP_READ, 0, byte_size_out)),
+        data_size);
+
+
         Errors err = validate_fft_r2c(shape, block_size, input_data, output_data);
+        sink_queue.enqueueUnmapMemObject(host_output_buf, output_data.data());
+        source_queue.enqueueUnmapMemObject(host_input_buf, input_data.data());
+
         std::cout << seconds << " " << err.abs << " " << err.rel << std::endl;
     }
 
@@ -137,8 +148,6 @@ void fft_test_r2c(const argagg::parser_results& args)
     for (double t : timings) total += t;
     std::cout << "# average runtime = " << total / repeats << " s" << std::endl;
 
-    source_queue.enqueueUnmapMemObject(host_input_buf, input_data.data());
-    sink_queue.enqueueUnmapMemObject(host_output_buf, output_data.data());
 }
 
 argagg::parser argparser {{
