@@ -5,4 +5,4 @@ $(EXE_DIR)/host-template: $(BUILD_DIR)/main.o $(LIB_DIR)/libfft.a $(LIB_DIR)/lib
 	$(PRINTF) " LD\t$(@F)\n"
 	$(AT)$(LD) $(LDFLAGS) -o $@ -Wl,--whole-archive $^ -Wl,--no-whole-archive
 
-$(TARGET): $(EXE_DIR)/host-template
+all: $(EXE_DIR)/host-template

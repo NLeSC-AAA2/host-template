@@ -5,4 +5,4 @@ $(BUILD_DIR)/%.o: CXXFLAGS+=$(shell aocl compile-config)
 
 $(LIB_DIR)/libcl.a: $(ofiles)
 
-$(TARGET): $(LIB_DIR)/libcl.a
+all: $(LIB_DIR)/libcl.a

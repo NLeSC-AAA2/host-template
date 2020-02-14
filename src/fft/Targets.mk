@@ -20,6 +20,4 @@ emulator: $(emulator_targets)
 $(EMULATOR_KERNEL_DIR)/fft5.aocr: AOCFLAGS+=-fpc -fp-relaxed
 $(DEVICE_KERNEL_DIR)/fft5.aocx: AOCFLAGS+=-fpc -fp-relaxed
 
-$(TARGET): $(LIB_DIR)/libfft.a $(DEVICE_KERNEL_DIR)/fft.aocr \
-    $(EMULATOR_KERNEL_DIR)/fft.aocr \
-    $(EMULATOR_KERNEL_DIR)/fft20.aocr
+all: $(LIB_DIR)/libfft.a
