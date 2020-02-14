@@ -9,15 +9,12 @@ emulator_targets:=$(patsubst $(SRCDIR)/%.cl,$(EMULATOR_KERNEL_DIR)/%.aocr,$(clfi
 $(BUILD_DIR)/%.o: CXXFLAGS+=$(shell aocl compile-config) \
     $(shell pkg-config --cflags fftw3f)
 
-$(LIB_DIR)/libfft.a: $(ofiles)
+$(LIB_DIR)/libfft_r2c.a: $(ofiles)
 
-device: $(DEVICE_KERNEL_DIR)/fft5.aocx $(DEVICE_KERNEL_DIR)/fft32.aocx
+device: $(DEVICE_KERNEL_DIR)/fft_r2c32.aocx $(DEVICE_KERNEL_DIR)/fft_r2c1024.aocx
 
 report: $(report_targets)
 
 emulator: $(emulator_targets)
 
-$(EMULATOR_KERNEL_DIR)/fft5.aocr: AOCFLAGS+=-fpc -fp-relaxed
-$(DEVICE_KERNEL_DIR)/fft5.aocx: AOCFLAGS+=-fpc -fp-relaxed
-
-all: $(LIB_DIR)/libfft.a
+all: $(LIB_DIR)/libfft_r2c.a

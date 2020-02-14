@@ -1,1 +1,1 @@
-../../SubDir.mk
+../../Makefile

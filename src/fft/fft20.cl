@@ -168,10 +168,10 @@ void do_fft_20()
 {
     float2 a[20], b[20];
     for (int n = 0; n < 20; n ++)
-	    a[n] = read_channel_intel(in_channel);
+        a[n] = read_channel_intel(in_channel);
     fft_20((float const *)a, (float *)b);
     for (int n = 0; n < 20; n ++)
-	    write_channel_intel(out_channel, b[n]);  
+        write_channel_intel(out_channel, b[n]);  
 }
 
 __attribute__((max_global_work_dim(0)))
@@ -189,3 +189,4 @@ __kernel void sink(__global float2 *out, unsigned count)
 }
 
 // vim:ft=c
+
