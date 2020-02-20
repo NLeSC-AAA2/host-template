@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <numeric>
+#include <memory>
 
 #include <random>
 #include <thread>
@@ -13,6 +14,9 @@
 #include "command.hh"
 #include "validation.hh"
 #include "arg-vector.hh"
+
+
+
 
 namespace fft_r2c
 {
@@ -88,44 +92,15 @@ void fft_test_r2c(const argagg::parser_results& args)
     cl::Buffer host_output_buf(context,
             CL_MEM_HOST_READ_ONLY | CL_MEM_ALLOC_HOST_PTR, byte_size_out);
 
+    short *input_data;
+    posix_memalign((void**)&input_data, 64, byte_size_in);
+    gsl::span<short> input_data_gsl(input_data, data_size);
 
-    cl::Kernel source_kernel(program, "source"),
-               sink_kernel(program, "sink");
-    set_args(source_kernel, device_input_buf, data_size);
-    set_args(sink_kernel, device_output_buf, data_size);
+    float *output_data;
+    posix_memalign((void**)&output_data, 64, byte_size_out);
+    gsl::span<std::complex<float>> output_data_gsl((std::complex<float>*)output_data, data_size);
 
-    cl::Event source_event, sink_event;
-    std::vector<double> timings;
-    std::cout << "#  timing(s)    max_diff(epsrel)\n";
-    for (unsigned i = 0; i < repeats; ++i) {
-    {
-        gsl::span<short> input_data(
-        reinterpret_cast<short*>(
-            source_queue.enqueueMapBuffer(host_input_buf, CL_TRUE, CL_MAP_WRITE, 0, byte_size_in)),
-        data_size);
-        randomize_data(input_data);
-        source_queue.enqueueCopyBuffer(host_input_buf, device_input_buf, 0, 0, byte_size_in);
-    }
-        std::thread source_thread(enqueue,
-            std::ref(source_queue),
-            std::ref(source_kernel),
-            std::ref(source_event));
-        std::thread sink_thread(enqueue,
-            std::ref(sink_queue),
-            std::ref(sink_kernel),
-            std::ref(sink_event));
-        source_thread.join();
-        sink_thread.join();
-        sink_queue.enqueueCopyBuffer(device_output_buf, host_output_buf, 0, 0, byte_size_out);
-        source_queue.finish();
-        sink_queue.finish();
-
-        cl_ulong start = source_event.getProfilingInfo<CL_PROFILING_COMMAND_START>();
-        cl_ulong stop  = sink_event.getProfilingInfo<CL_PROFILING_COMMAND_END>();
-        double seconds = (stop - start) / 1e9;
-        timings.push_back(seconds);
-
-
+/*
         gsl::span<short> input_data(
         reinterpret_cast<short*>(
             source_queue.enqueueMapBuffer(host_input_buf, CL_TRUE, CL_MAP_WRITE, 0, byte_size_in)),
@@ -135,19 +110,76 @@ void fft_test_r2c(const argagg::parser_results& args)
         reinterpret_cast<std::complex<float>*>(
             sink_queue.enqueueMapBuffer(host_output_buf, CL_TRUE, CL_MAP_READ, 0, byte_size_out)),
         data_size);
+*/
+//    gsl::span<std::complex<float>> output_data_gsl(output_data, data_size);
 
 
-        Errors err = validate_fft_r2c(shape, block_size, input_data, output_data);
-        sink_queue.enqueueUnmapMemObject(host_output_buf, output_data.data());
-        source_queue.enqueueUnmapMemObject(host_input_buf, input_data.data());
+    cl::Kernel source_kernel(program, "source"),
+               sink_kernel(program, "sink");
+    set_args(source_kernel, device_input_buf, data_size);
+    set_args(sink_kernel, device_output_buf, data_size);
 
-        std::cout << seconds << " " << err.abs << " " << err.rel << std::endl;
+    cl::Event source_event, sink_event;
+    std::vector<double> timings;
+    std::cout << "#  timing(ms)    max_diff(epsrel)\n";
+
+    for (unsigned i = 0; i < repeats; ++i) {
+        randomize_data(input_data_gsl);
+        //source_queue.enqueueCopyBuffer(host_input_buf, device_input_buf, 0, 0, byte_size_in);
+        source_queue.enqueueWriteBuffer(device_input_buf, CL_TRUE, 0, byte_size_in, input_data);
+
+        enqueue(
+            std::ref(source_queue),
+            std::ref(source_kernel),
+            std::ref(source_event));
+        enqueue(
+            std::ref(sink_queue),
+            std::ref(sink_kernel),
+            std::ref(sink_event));
+        //sink_queue.enqueueCopyBuffer(device_output_buf, host_output_buf, 0, 0, byte_size_out);
+        source_queue.finish();
+        sink_queue.finish();
+        sink_queue.enqueueReadBuffer(device_output_buf, CL_TRUE, 0, byte_size_out, output_data);
+
+        cl_ulong src_start = source_event.getProfilingInfo<CL_PROFILING_COMMAND_START>();
+        cl_ulong src_stop  = source_event.getProfilingInfo<CL_PROFILING_COMMAND_END>();
+        cl_ulong snk_start = sink_event.getProfilingInfo<CL_PROFILING_COMMAND_START>();
+        cl_ulong snk_stop  = sink_event.getProfilingInfo<CL_PROFILING_COMMAND_END>();
+        double src_ms = (src_stop - src_start) / 1e6;
+        double snk_ms = (snk_stop - snk_start) / 1e6;
+        timings.push_back(snk_ms);
+
+
+
+
+
+        Errors err = validate_fft_r2c(shape, block_size, input_data_gsl, output_data_gsl);
+
+        //std::cout << seconds << " " << err.abs << " " << err.rel << std::endl;
+        std::cout << src_ms << " " << snk_ms << " " << err.abs << " " << err.rel << std::endl;
+
+
+        cl_int error;
+
+        //clGetProfileDataDeviceIntelFPGA(devices[0], program, true, true, true, 0, nullptr, nullptr, &error);
+    cl_int (*get_profile_fn)(cl_device_id, cl_program, cl_bool,cl_bool,cl_bool,size_t, void *,size_t *,cl_int *);
+
+    get_profile_fn = (cl_int (*) (cl_device_id, cl_program, cl_bool,cl_bool,cl_bool,size_t, void *,size_t *,cl_int *))clGetExtensionFunctionAddress("clGetProfileDataDeviceIntelFPGA");
+
+    cl_int status = (cl_int)(*get_profile_fn) ((cl_device_id)devices[0](), (cl_program)program(), false, true, false, 0, NULL, NULL,  NULL);
+
+
+
     }
 
     double total = 0.0;
     for (double t : timings) total += t;
-    std::cout << "# average runtime = " << total / repeats << " s" << std::endl;
+    std::cout << "# average runtime = " << total / repeats << " ms" << std::endl;
 
+
+
+        source_queue.finish();
+        sink_queue.finish();
 }
 
 argagg::parser argparser {{

@@ -20,7 +20,7 @@ CXXFLAGS:=-std=c++14 -Wall -pedantic -O3 -I$(ROOTDIR)/vendor \
     -iquote $(ROOTDIR)/include -isystem$(SDKROOT)/host/include/ \
     -Wno-ignored-attributes -g
 AOC:=aoc
-AOCFLAGS:=-I${SDKROOT}/include/kernel_headers
+AOCFLAGS:=-I${SDKROOT}/include/kernel_headers -profile=all
 LD:=g++
 
 all: build report
