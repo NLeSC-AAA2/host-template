@@ -113,6 +113,10 @@ void fft_test_r2c(const argagg::parser_results& args)
 */
 //    gsl::span<std::complex<float>> output_data_gsl(output_data, data_size);
 
+    cl_int (*get_profile_fn)(cl_device_id, cl_program, cl_bool,cl_bool,cl_bool,size_t, void *,size_t *,cl_int *);
+
+    get_profile_fn = (cl_int (*) (cl_device_id, cl_program, cl_bool,cl_bool,cl_bool,size_t, void *,size_t *,cl_int *))clGetExtensionFunctionAddress("clGetProfileDataDeviceIntelFPGA");
+
 
     cl::Kernel source_kernel(program, "source"),
                sink_kernel(program, "sink");
@@ -127,7 +131,10 @@ void fft_test_r2c(const argagg::parser_results& args)
         randomize_data(input_data_gsl);
         //source_queue.enqueueCopyBuffer(host_input_buf, device_input_buf, 0, 0, byte_size_in);
         source_queue.enqueueWriteBuffer(device_input_buf, CL_TRUE, 0, byte_size_in, input_data);
+        source_queue.finish();
+        sink_queue.finish();
 
+    cl_int status = (cl_int)(*get_profile_fn) ((cl_device_id)devices[0](), (cl_program)program(), false, true, false, 0, NULL, NULL,  NULL);
         enqueue(
             std::ref(source_queue),
             std::ref(source_kernel),
@@ -136,9 +143,12 @@ void fft_test_r2c(const argagg::parser_results& args)
             std::ref(sink_queue),
             std::ref(sink_kernel),
             std::ref(sink_event));
+
         //sink_queue.enqueueCopyBuffer(device_output_buf, host_output_buf, 0, 0, byte_size_out);
         source_queue.finish();
         sink_queue.finish();
+        (cl_int)(*get_profile_fn) ((cl_device_id)devices[0](), (cl_program)program(), false, true, false, 0, NULL, NULL,  NULL);
+
         sink_queue.enqueueReadBuffer(device_output_buf, CL_TRUE, 0, byte_size_out, output_data);
 
         cl_ulong src_start = source_event.getProfilingInfo<CL_PROFILING_COMMAND_START>();
@@ -162,11 +172,7 @@ void fft_test_r2c(const argagg::parser_results& args)
         cl_int error;
 
         //clGetProfileDataDeviceIntelFPGA(devices[0], program, true, true, true, 0, nullptr, nullptr, &error);
-    cl_int (*get_profile_fn)(cl_device_id, cl_program, cl_bool,cl_bool,cl_bool,size_t, void *,size_t *,cl_int *);
 
-    get_profile_fn = (cl_int (*) (cl_device_id, cl_program, cl_bool,cl_bool,cl_bool,size_t, void *,size_t *,cl_int *))clGetExtensionFunctionAddress("clGetProfileDataDeviceIntelFPGA");
-
-    cl_int status = (cl_int)(*get_profile_fn) ((cl_device_id)devices[0](), (cl_program)program(), false, true, false, 0, NULL, NULL,  NULL);
 
 
 
