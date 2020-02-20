@@ -1,7 +1,0 @@
--Iinclude/
--Ivendor/
--isystem/var/scratch/package/altera_pro/18.1.0.222/hld/host/include/
--isystem/var/scratch/package/altera_pro/18.1.0.222/hld/include/kernel_headers/
--isystem/var/scratch/package/altera_pro/18.1.0.222/hld/host/include/CL/
--Wno-ignored-attributes
--std=c++14

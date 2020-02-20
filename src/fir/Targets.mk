@@ -5,11 +5,10 @@ $(BUILD_DIR)/%.o: CXXFLAGS+=$(shell aocl compile-config)
 
 $(LIB_DIR)/libfir.a: $(ofiles)
 
+all: $(LIB_DIR)/libfir.a
+
 device: $(DEVICE_KERNEL_DIR)/FIR_filter.aocx
 
 report: $(DEVICE_KERNEL_DIR)/FIR_filter.aocr
 
 emulator: $(EMULATOR_KERNEL_DIR)/FIR_filter.aocr
-
-$(TARGET): $(LIB_DIR)/libfir.a $(DEVICE_KERNEL_DIR)/FIR_filter.aocr \
-    $(EMULATOR_KERNEL_DIR)/FIR_filter.aocr

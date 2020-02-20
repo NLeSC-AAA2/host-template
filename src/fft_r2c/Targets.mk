@@ -17,4 +17,4 @@ report: $(report_targets)
 
 emulator: $(emulator_targets)
 
-$(TARGET): $(LIB_DIR)/libfft_r2c.a 
+all: $(LIB_DIR)/libfft_r2c.a

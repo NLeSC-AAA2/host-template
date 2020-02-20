@@ -11,5 +11,4 @@ report: $(DEVICE_KERNEL_DIR)/ether.aocr
 
 emulator: $(EMULATOR_KERNEL_DIR)/ether.aocr
 
-$(TARGET): $(LIB_DIR)/libether.a $(DEVICE_KERNEL_DIR)/ether.aocr \
-    $(EMULATOR_KERNEL_DIR)/ether.aocr
+all: $(LIB_DIR)/libether.a
