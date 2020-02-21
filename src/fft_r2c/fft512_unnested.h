@@ -373,22 +373,22 @@ __constant short offset[32] = {
 };
 
 void fft(float const *input, float *output) {
+    int a, b, c;
     #pragma ivdep
-    for (int a=0; a<32; ++a) {
+    for (a=0; a<32; a+=1) {
         notw_4(input + offset[a], input + offset[a] + 1, output + a*32, output + a*32 + 1, 256, 2, 4, 64, 8);
     }
     #pragma ivdep
-    for (int a=0; a<32; ++a) {
-        twiddle_4(output+a*16, output+a*16+1, w_4_4, 8, 0, 4, 2);
+    for (a=0; a<1024; a+=32) {
+        twiddle_4(output+a, output+a+1, w_4_4, 8, 0, 4, 2);
     }
     #pragma ivdep
-    #pragma loop_coalesce 2
-    for (int a=0; a<8; ++a) {
-        twiddle_4(output+a*64, output+a*64+1, w_4_16, 32, 0, 16, 2);
+    for (a=0; a<1024; a+=128) {
+       twiddle_4(output+a, output+a+1, w_4_16, 32, 0, 16, 2);
     }
     #pragma ivdep
-    for (int a=0; a<2; ++a) {
-        twiddle_4(output+a*256, output+a*256+1, w_4_64, 128, 0, 64, 2);
+    for (a=0; a<1024; a+=512) {
+        twiddle_4(output+a, output+a+1, w_4_64, 128, 0, 64, 2);
     }
     twiddle_2(output+0, output+0+1, w_2_256, 512, 0, 256, 2);
 }
