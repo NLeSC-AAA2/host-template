@@ -58,17 +58,14 @@ void fir(const argagg::parser_results& args)
         queue.finish();
     }
 
-    Kernel kernel(program, "FIR_filter");
     Kernel source(program, "source");
     Kernel sink(program, "sink");
 
     source(input, inputSamples);
-    kernel(inputSamples);
     sink(output, inputSamples);
 
     auto outputData = fir_reference(inputData);
 
-    kernel.finish();
     source.finish();
     sink.finish();
 

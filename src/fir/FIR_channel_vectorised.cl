@@ -38,11 +38,9 @@ computeOutput
 
 kernel void
 __attribute__((max_global_work_dim(0)))
-FIR_filter
-(int inputSamples)
+__attribute__((autorun))
+FIR_filter()
 {
-    int chunkCount = (inputSamples + VECTOR_SIZE - 1) / VECTOR_SIZE;
-
     short16 inputShiftReg[NR_CHANNEL_CHUNKS][NR_TAPS];
     short16 filterWeightsCache[NR_CHANNEL_CHUNKS][NR_TAPS];
 
@@ -57,7 +55,7 @@ FIR_filter
 
     int chan = 0;
     #pragma ivdep safelen(NR_CHANNEL_CHUNKS)
-    for (int i = 0; i < chunkCount; i++) {
+    while (true) {
         short16 result = 0;
         #pragma unroll
         for (int tap = 0; tap < NR_TAPS; tap++) {
