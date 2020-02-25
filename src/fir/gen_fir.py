@@ -21,7 +21,12 @@ const cl_short filterWeights[NR_CHANNELS][NR_TAPS] =
     print "};\n}"
 
 def fpga(filter_weights, args):
-    print "__constant short filterWeights[] = {"
+    print Template("""\
+constant int NR_TAPS = $taps;
+constant int NR_CHANNELS = $channels;
+constant int VECTOR_SIZE = $vector_size;
+constant short filterWeights[] =
+{""").safe_substitute(taps=args.taps, channels=args.channels, vector_size=args.vector_size),
 
     if args.vector_size:
         for c in range(args.channels / args.vector_size):

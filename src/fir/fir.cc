@@ -26,7 +26,6 @@ void fir(const argagg::parser_results& args)
     std::string const &kernelFile = args["kernel"].as<std::string>();
     int inputSamples = ((args["inputs"].as<int>() + VECTOR_SIZE - 1) / VECTOR_SIZE) * VECTOR_SIZE;
     int outputSize = inputSamples * sizeof(cl_short);
-
     std::vector<cl_char> inputData(inputSamples);
 
     unsigned char v = 0;
@@ -44,33 +43,17 @@ void fir(const argagg::parser_results& args)
     auto inputFlags = CL_MEM_HOST_WRITE_ONLY | CL_MEM_READ_ONLY;
     auto outputFlags = CL_MEM_HOST_READ_ONLY | CL_MEM_WRITE_ONLY;
 
-    size_t filterSize = NR_TAPS * NR_CHANNELS * sizeof(cl_short);
-    cl::Buffer filterWeightsBuf(context, inputFlags, filterSize);
     cl::Buffer input(context, inputFlags, inputSamples);
     cl::Buffer output(context, outputFlags, outputSize);
 
     {
-        void *result = queue.enqueueMapBuffer(filterWeightsBuf, CL_TRUE, CL_MAP_WRITE, 0, filterSize);
-
-        cl_short *filterVals = static_cast<cl_short*>(result);
-
-        result = queue.enqueueMapBuffer(input, CL_TRUE, CL_MAP_WRITE, 0, inputSamples);
+        void *result = queue.enqueueMapBuffer(input, CL_TRUE, CL_MAP_WRITE, 0, inputSamples);
         cl_char *inputVals = static_cast<cl_char*>(result);
-
-        int j = 0;
-        for (int chan = 0; chan < NR_CHANNELS/VECTOR_SIZE; chan++) {
-            for (int tap = 0; tap < NR_TAPS; tap++) {
-                for (int i = 0; i < VECTOR_SIZE; i++) {
-                    filterVals[j++] = filterWeights[(chan * VECTOR_SIZE) + i][tap];
-                }
-            }
-        }
 
         for (int i = 0; i < inputSamples; i++) {
             inputVals[i] = inputData[i];
         }
 
-        queue.enqueueUnmapMemObject(filterWeightsBuf, filterVals);
         queue.enqueueUnmapMemObject(input, inputVals);
         queue.finish();
     }
@@ -80,7 +63,7 @@ void fir(const argagg::parser_results& args)
     Kernel sink(program, "sink");
 
     source(input, inputSamples);
-    kernel(filterWeightsBuf, inputSamples);
+    kernel(inputSamples);
     sink(output, inputSamples);
 
     auto outputData = fir_reference(inputData);
