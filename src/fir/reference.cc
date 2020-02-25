@@ -4,20 +4,24 @@ namespace fir
 {
 
 std::vector<cl_short>
-fir_reference(const FilterWeights& weights, const std::vector<cl_char>& input)
+fir_reference(const std::vector<cl_char>& input)
 {
     std::vector<cl_short> result;
-    InputBuffer inputBuffer(FilterWeightDims);
+    cl_char inputBuffer[NR_CHANNELS][NR_TAPS];
 
     result.reserve(input.size());
-    std::fill_n(inputBuffer.data(), inputBuffer.num_elements(), 0);
+    for (int chan = 0; chan < NR_CHANNELS; chan++) {
+        for (int tap = 0; tap < NR_TAPS; tap++) {
+            inputBuffer[chan][tap] = 0;
+        }
+    }
 
     int chan = 0;
     for (auto val : input) {
         cl_short sum = 0;
 
         for (int tap = 0; tap < NR_TAPS; tap++) {
-            sum += inputBuffer[chan][tap] * weights[chan][tap];
+            sum += inputBuffer[chan][tap] * filterWeights[chan][tap];
         }
 
         for (int tap = 1; tap < NR_TAPS; tap++) {

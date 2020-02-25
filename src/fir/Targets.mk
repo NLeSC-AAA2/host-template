@@ -2,6 +2,7 @@ cfiles:=$(wildcard $(SRCDIR)/*.cc)
 ofiles:=$(patsubst $(SRCDIR)/%.cc,$(BUILD_DIR)/%.o,$(cfiles))
 
 $(BUILD_DIR)/%.o: CXXFLAGS+=$(shell aocl compile-config)
+$(ofiles): $(BUILD_DIR)/FIR-1024x16-host.hh
 
 $(LIB_DIR)/libfir.a: $(ofiles)
 
