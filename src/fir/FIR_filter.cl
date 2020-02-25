@@ -41,8 +41,9 @@ computeOutput
 kernel void
 __attribute__((max_global_work_dim(0)))
 FIR_filter
-(constant const short * restrict filterWeights, int chunkCount)
+(constant const short * restrict filterWeights, int inputSamples)
 {
+    int chunkCount = (inputSamples + VECTOR_SIZE - 1) / VECTOR_SIZE;
     short16 inputShiftReg[TAPS_CHANNELS_MULT];
     short16 inputShiftReg2[TAPS_CHANNELS_MULT];
     short16 filterWeightsCache[TAPS_CHANNELS_MULT];
@@ -68,18 +69,20 @@ FIR_filter
 
 kernel void
 __attribute__((max_global_work_dim(0)))
-source(global const char16 * restrict data, int count)
+source(global const char16 * restrict data, int inputSamples)
 {
-    for (int i = 0; i < count; i++) {
+    int chunkCount = (inputSamples + VECTOR_SIZE -1) / VECTOR_SIZE;
+    for (int i = 0; i < chunkCount; i++) {
         write_channel_intel(in_channel, data[i]);
     }
 }
 
 kernel void
 __attribute__((max_global_work_dim(0)))
-sink(global short16 * restrict data, int count)
+sink(global short16 * restrict data, int inputSamples)
 {
-    for (int i = 0; i < count; i++) {
+    int chunkCount = (inputSamples + VECTOR_SIZE -1) / VECTOR_SIZE;
+    for (int i = 0; i < chunkCount; i++) {
         data[i] = read_channel_intel(fft_channel);
     }
 }

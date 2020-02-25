@@ -97,9 +97,9 @@ void fir(const argagg::parser_results& args)
     Kernel source(program, "source");
     Kernel sink(program, "sink");
 
-    source(input, chunkCount);
-    kernel(filterWeights, chunkCount);
-    sink(output, chunkCount);
+    source(input, inputSamples);
+    kernel(filterWeights, inputSamples);
+    sink(output, inputSamples);
 
     auto outputData = fir_reference(weights, inputData);
 
