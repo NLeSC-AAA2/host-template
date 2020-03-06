@@ -1169,20 +1169,37 @@ __kernel
 __attribute__((autorun))
 __attribute__((max_global_work_dim(0)))
 void do_fft_1024() {
-    float2 s[4][256];
+    // float2 s[4][256];
+    float2 s0[256], s1[256], s2[256], s3[256];
 
     while (true) {
         for (int j = 0; j < 1024; ++j) {
             int i = transpose_4(j);
             int p = parity_4(i);
-            s[p][i>>2] = read_channel_intel(in_channel);
+            // s[p][i>>2] = read_channel_intel(in_channel);
+            float2 x = read_channel_intel(in_channel);
+            switch (p) {
+                case 0: s0[i>>2] = x; break;
+                case 1: s1[i>>2] = x; break;
+                case 2: s2[i>>2] = x; break;
+                case 3: s3[i>>2] = x; break;
+            }
         }
 
-        fft_1024_mc(s[0], s[1], s[2], s[3]);
+        // fft_1024_mc(s[0], s[1], s[2], s[3]);
+        fft_1024_mc(s0, s1, s2, s3);
 
         for (int i = 0; i < 1024; ++i) {
             int p = parity_4(i);
-            write_channel_intel(out_channel, s[p][i>>2]);
+            // write_channel_intel(out_channel, s[p][i>>2]);
+            float2 y;
+            switch (p) {
+                case 0: y = s0[i>>2]; break;
+                case 1: y = s1[i>>2]; break;
+                case 2: y = s2[i>>2]; break;
+                case 3: y = s3[i>>2]; break;
+            }
+            write_channel_intel(out_channel, y);
         }
     }
 }
