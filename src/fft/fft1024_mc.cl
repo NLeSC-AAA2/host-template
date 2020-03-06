@@ -1156,6 +1156,7 @@ void fft_1024_mc(
     int wp = 0;
     for (int k = 0; k < 5; ++k) {
         int j = (k == 0 ? 0 : 1 << 2 * (k-1));
+        #pragma ivdep
         for (int i = 0; i < 256; ++i) {
             int a;
             if (k != 0) {
@@ -1173,7 +1174,7 @@ __kernel
 __attribute__((autorun))
 __attribute__((max_global_work_dim(0)))
 void do_fft_1024() {
-    // float2 s[4][256];
+    // float2 s[4][256]; 
     float2 s0[256], s1[256], s2[256], s3[256];
 
     while (true) {
