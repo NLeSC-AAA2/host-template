@@ -1058,17 +1058,17 @@ void fft_4(
 
     a = t0;    b = t2;    c = t1;    d = t3;
 
-    b = (float2) (a.x - w[1].x * b.x - w[1].y * b.y,
-                  a.y - w[1].x * b.y + w[1].y * b.x);
+    b = (float2) (a.x - w[1].x * b.x + w[1].y * b.y,
+                  a.y - w[1].x * b.y - w[1].y * b.x);
     a = (float2) (2*a.x - b.x,
                   2*a.y - b.y);
-    d = (float2) (c.x - w[1].x * d.x - w[1].y * d.y,  //w[1] according to 1999 paper
-                  c.y - w[1].x * d.y + w[1].y * d.x);
+    d = (float2) (c.x - w[1].x * d.x + w[1].y * d.y,  //w[1] according to 1999 paper
+                  c.y - w[1].x * d.y - w[1].y * d.x);
     c = (float2) (2*c.x - d.x,
                   2*c.y - d.y); 
 
-    c = (float2) (a.x - w[0].x * c.x - w[0].y * c.y,
-                  a.y - w[0].x * c.y + w[0].y * c.x);
+    c = (float2) (a.x - w[0].x * c.x + w[0].y * c.y,
+                  a.y - w[0].x * c.y - w[0].y * c.x);
 
     x2 = c;
     x0 = (float2) (2*a.x - c.x,
@@ -1078,11 +1078,11 @@ void fft_4(
     //float2 wd = (float2) (w[0].x * d.x - w[0].y * d.y,
     //                      w[0].x * d.y + w[0].y * d.x);
     //float2 iwd = (float2) (-wd.y, wd.x);
-    //d = (float2) (b.x - iwd.x,
-    //              b.y - iwd.y);
+    //d = (float2) (b.x + wd.y,
+    //              b.y - wd.x);
 
     d = (float2) (b.x + w[0].x * d.y + w[0].y * d.x,
-                  b.y - w[0].x * d.x - w[0].y * d.y);
+                  b.y - w[0].x * d.x + w[0].y * d.y);
 
     x1 = d;
 
