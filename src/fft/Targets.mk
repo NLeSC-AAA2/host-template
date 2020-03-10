@@ -11,7 +11,7 @@ $(BUILD_DIR)/%.o: CXXFLAGS+=$(shell aocl compile-config) \
 
 $(LIB_DIR)/libfft.a: $(ofiles)
 
-device: $(DEVICE_KERNEL_DIR)/fft1024_mc.aocx
+device: $(DEVICE_KERNEL_DIR)/fft1024_mc_fma.aocx
 
 report: $(report_targets)
 
