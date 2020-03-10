@@ -146,6 +146,12 @@ void fft_test(const argagg::parser_results& args)
     double total = 0.0;
     for (double t : timings) total += t;
     std::cout << "# average runtime = " << total / repeats << " s" << std::endl;
+
+
+    //try to prevent the node from crashing
+    source_queue.finish();
+    sink_queue.finish();
+
 }
 
 argagg::parser argparser {{
