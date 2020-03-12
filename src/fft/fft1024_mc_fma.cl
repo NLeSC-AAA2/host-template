@@ -1053,8 +1053,8 @@ void fft_4(
         case 3: t0 = s3[i0]; t1 = s0[i1]; t2 = s1[i2]; t3 = s2[i3]; break;
     }
 
-// WRONG: must be a serious mistake in pseudo code in 2013 paper
-//    a = t0;    b = t1;    c = t2;    d = t3;
+    // WRONG: there is a mistake in pseudo code in the paper "Transforming A Linear Algebra Coreto An FFT Accelerator"
+    //    a = t0;    b = t1;    c = t2;    d = t3;
 
     a = t0;    b = t2;    c = t1;    d = t3;
 
@@ -1062,33 +1062,24 @@ void fft_4(
                   a.y - w[1].x * b.y - w[1].y * b.x);
     a = (float2) (2*a.x - b.x,
                   2*a.y - b.y);
-    d = (float2) (c.x - w[1].x * d.x + w[1].y * d.y,  //w[1] according to 1999 paper
+    d = (float2) (c.x - w[1].x * d.x + w[1].y * d.y,
                   c.y - w[1].x * d.y - w[1].y * d.x);
     c = (float2) (2*c.x - d.x,
                   2*c.y - d.y); 
 
     c = (float2) (a.x - w[0].x * c.x + w[0].y * c.y,
                   a.y - w[0].x * c.y - w[0].y * c.x);
-
     x2 = c;
     x0 = (float2) (2*a.x - c.x,
                    2*a.y - c.y);
 
     //d = b - i*w[0]*d
-    //float2 wd = (float2) (w[0].x * d.x - w[0].y * d.y,
-    //                      w[0].x * d.y + w[0].y * d.x);
-    //float2 iwd = (float2) (-wd.y, wd.x);
-    //d = (float2) (b.x + wd.y,
-    //              b.y - wd.x);
-
     d = (float2) (b.x + w[0].x * d.y + w[0].y * d.x,
                   b.y - w[0].x * d.x + w[0].y * d.y);
 
     x1 = d;
-
     x3 = (float2) (2*b.x - d.x,
                    2*b.y - d.y);
-
 
     switch (cycle) {
         case 0: s0[i0] = x0; s1[i1] = x1; s2[i2] = x2; s3[i3] = x3; break;
@@ -1192,6 +1183,49 @@ void fft_1024_mc(
         }
     }
 }
+
+
+
+void fix_2n(float2* c, float2 *Xa, float2 *Xb) {
+
+    for (int i=1; i<N/2; i++) {
+
+        Xa[i].x = (c[N-i].x + c[i].x) * 0.5;
+        Xa[i].y = (c[i].y - c[N-i].y) * 0.5;
+        Xb[i].x = (c[N-i].y + c[i].y) * 0.5;
+        Xb[i].y = (c[N-i].x - c[i].x) * 0.5;
+
+    }
+
+    Xa[0].x = c[0].x;
+    Xa[0].y = 0.0;
+    Xb[0].x = c[0].y;
+    Xb[0].y = 0.0;
+
+}
+
+
+#ifdef TESTING
+__kernel
+void test_fix_2n(__global float2 *c, __global float2 *Xa, __global float2 *Xb) {
+    //you cant pas pointers to functions in opencl so just for testing we make local copies
+    //and pass pointers to those
+    float2 cc[N];
+    float2 cXa[N/2];
+    float2 cXb[N/2];
+    for (int i=0; i<N; i++)
+        cc[i] = c[i];
+
+    fix_2n(cc, cXa, cXb);
+
+    for (int i=0; i<N/2; i++) {
+        Xa[i] = cXa[i];
+        Xb[i] = cXb[i];
+    }
+
+}
+#endif
+
 
 #ifndef TESTING
 __kernel
