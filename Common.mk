@@ -32,3 +32,25 @@ $(DEVICE_KERNEL_DIR)/%.aocx: $(DEVICE_KERNEL_DIR)/%.aocr
 	$(PRINTF) " AOC\t$(<F)\n"
 	$(AT)cd $(DEVICE_KERNEL_DIR) && $(AOC) $(AOCFLAGS) $< \
 	    $(if $(AT), >/dev/null,)
+
+$(UNIBOARD_KERNEL_DIR)/%.aocx: $(UNIBOARD_KERNEL_DIR)/%.aocr
+	$(PRINTF) " AOC\t$(<F)\n"
+	$(AT)cd $(UNIBOARD_KERNEL_DIR) && $(AOC) $(AOCFLAGS) $< \
+	    $(if $(AT), >/dev/null,)
+#
+$(UNIBOARD_KERNEL_DIR)/%.aoco: $(SRCDIR)/%.cl | $(UNIBOARD_KERNEL_DIR)/
+	$(PRINTF) " AOC\t$(<F)\n"
+	$(AT)$(AOC) $(AOCFLAGS) -c -board=unb2b -o $@ $< \
+	    $(if $(AT), >/dev/null,)
+
+$(UNIBOARD_KERNEL_DIR)/%.aocr: $(UNIBOARD_KERNEL_DIR)/%.aoco
+	$(PRINTF) " AOC\t$(<F)\n"
+	$(AT)$(AOC) $(AOCFLAGS) -report -profile=all -board=unb2b \
+	    -opt-arg=--allow-io-channel-autorun-kernel \
+	    $< -rtl -o $@ $(if $(AT), >/dev/null,)
+
+$(UNIBOARD_KERNEL_DIR)/%.sof: $(UNIBOARD_KERNEL_DIR)/%.aocr
+	$(PRINTF) " AOC\t$(<F)\n"
+	$(AT)cd $(UNIBOARD_KERNEL_DIR) && $(AOC) $(AOCFLAGS) $< \
+	    $(if $(AT), >/dev/null,)
+	$(AT)cp -a $(@D)/$*/flat*.sof $@

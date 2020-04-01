@@ -116,6 +116,7 @@ LIB_DIR:=$(BUILD_ROOT)/lib
 EXE_DIR:=$(BUILD_ROOT)
 EMULATOR_KERNEL_DIR:=$(BUILD_ROOT)/kernels/emulator
 DEVICE_KERNEL_DIR:=$(BUILD_ROOT)/kernels/device
+UNIBOARD_KERNEL_DIR:=$(BUILD_ROOT)/kernels/uniboard
 
 ###############################################################################
 # Include subdirectory makefiles                                              #

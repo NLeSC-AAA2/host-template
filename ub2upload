@@ -1,0 +1,4 @@
+#!/bin/bash
+
+jtagconfig --addserver dop36 BG132V051
+quartus_pgm -c USB-BLASTERII -m jtag -o p\;$1@1
