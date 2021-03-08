@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import argparse
 from string import Template
 
@@ -8,40 +9,40 @@ def host(filter_weights, args):
         vals = ", ".join(str(filter_weights[c, t]) for t in range(args.taps))
         return "{ " + vals + " }"
 
-    print Template("""\
+    print(Template("""\
 namespace fir
 {
 constexpr int NR_TAPS = $taps;
 constexpr int NR_CHANNELS = $channels;
 
 const cl_short filterWeights[NR_CHANNELS][NR_TAPS] =
-{""").safe_substitute(taps=args.taps, channels=args.channels),
+{""").safe_substitute(taps=args.taps, channels=args.channels), end="")
 
-    print "\n, ".join(render_channel(c) for c in range(args.channels))
-    print "};\n}"
+    print("\n, ".join(render_channel(c) for c in range(args.channels)))
+    print("};\n}")
 
 def fpga(filter_weights, args):
-    print Template("""\
+    print(Template("""\
 constant int NR_TAPS = $taps;
 constant int NR_CHANNELS = $channels;
 constant int VECTOR_SIZE = $vector_size;
 constant short filterWeights[] =
-{""").safe_substitute(taps=args.taps, channels=args.channels, vector_size=args.vector_size),
+{""").safe_substitute(taps=args.taps, channels=args.channels, vector_size=args.vector_size), end="")
 
     if args.vector_size:
         for c in range(args.channels / args.vector_size):
             for t in range(args.taps):
                 for i in range(args.vector_size):
-                    print str(filter_weights[(c * args.vector_size) + i, t]) + ", ",
-                print
-            print
+                    print(str(filter_weights[(c * args.vector_size) + i, t]) + ", ", end="")
+                print()
+            print()
     else:
         for c in range(args.channels):
             for t in range(args.taps):
-                print str(filter_weights[c, t]) + ",",
-            print
+                print(str(filter_weights[c, t]) + ",", end="")
+            print()
 
-    print "};"
+    print("};")
 
 if __name__ != "__main__":
     exit(1)
