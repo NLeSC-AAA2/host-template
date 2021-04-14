@@ -143,9 +143,20 @@ void fft_test(const argagg::parser_results& args)
         std::cout << seconds << " " << err.abs << " " << err.rel << std::endl;
     }
 
-    double total = 0.0;
-    for (double t : timings) total += t;
-    std::cout << "# average runtime = " << total / repeats << " s" << std::endl;
+    double mean = timings.at(0);
+    double variance = 0.0;
+    if ( timings.size() > 1 )
+    {
+        for ( unsigned int sample_id = 1; sample_id < timings.size(); sample_id++ )
+        {
+            double oldMean = mean;
+
+            mean = oldMean + ((timings.at(sample_id) - oldMean) / (sample_id + 1));
+            variance += (timings.at(sample_id) - oldMean) * (timings.at(sample_id) - mean);
+        }
+        variance /= (timings.size() - 1);
+    }
+    std::cout << "# average runtime = " << mean << " seconds; standard deviation = " << sqrt(variance) << std::endl;
 
 
     //try to prevent the node from crashing
