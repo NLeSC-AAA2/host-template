@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <numeric>
+#include <algorithm>
 
 #include <random>
 #include <thread>
@@ -156,6 +157,7 @@ void fft_test(const argagg::parser_results& args)
         }
         variance /= (timings.size() - 1);
     }
+    std::cout << "# min runtime = " << *(std::min_element(timings,begin(), timings.end())) << " seconds; max runtime = " << *(std::max_element(timings.begin(), timings.end())) << " seconds" << std::endl;
     std::cout << "# average runtime = " << mean << " seconds; standard deviation = " << sqrt(variance) << std::endl;
 
 
