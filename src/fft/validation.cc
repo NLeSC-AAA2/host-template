@@ -23,22 +23,29 @@ std::map<std::string, TripleA2::TypeId> TripleA2::type_map =
 Errors validate_fft
     ( shape_t const &shape
     , unsigned block
+    , unsigned veclen
     , complex_span<float> input
     , complex_span<float> output )
 {
-    size_t s = 1;
+    size_t s = veclen;
     for (auto x : shape) s *= x;
     std::vector<std::complex<float>> ground_truth(s * block);
 
     fftwf_plan plan = fftwf_plan_many_dft(
         shape.size(), shape.data(), block,
-        reinterpret_cast<fftwf_complex *>(input.data()), NULL, 1, s,
-        reinterpret_cast<fftwf_complex *>(ground_truth.data()), NULL, 1, s,
+        reinterpret_cast<fftwf_complex *>(input.data()), NULL, veclen, s,
+        reinterpret_cast<fftwf_complex *>(ground_truth.data()), NULL, veclen, s,
         FFTW_FORWARD, FFTW_ESTIMATE);
-    fftwf_execute(plan);
+
+    for (unsigned k = 0; k < veclen; ++k) {
+        fftwf_execute_dft(
+            plan,
+            reinterpret_cast<fftwf_complex*>(input.data()) + k,
+            reinterpret_cast<fftwf_complex*>(ground_truth.data()) + k);
+    }
 
     Errors max = {0.0, 0.0};
-    for (size_t i = 0; i < s*block; ++i) {
+    for (size_t i = 0; i < ground_truth.size(); ++i) {
         double abs_err = std::abs(ground_truth[i] - output[i]);
         double rel_err = abs_err / std::abs(ground_truth[i]);
         max.abs = std::max(abs_err, max.abs);

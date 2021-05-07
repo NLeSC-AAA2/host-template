@@ -60,5 +60,6 @@ struct Errors
 extern Errors validate_fft(
         shape_t const &shape,
         unsigned block,
+        unsigned veclen,
         complex_span<float> input,
         complex_span<float> output);
