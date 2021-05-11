@@ -71,9 +71,11 @@ void fft_test(const argagg::parser_results& args)
     unsigned fft_size = static_cast<unsigned>(product(shape));
     unsigned repeats = args["repeat"].as<unsigned>(100);
     unsigned block_size = args["block"].as<unsigned>(10);
-    unsigned data_size = fft_size * block_size,
+    unsigned veclen = args["veclen"].as<unsigned>(1);
+    unsigned data_size = fft_size * block_size * veclen,
              byte_size = data_size * sizeof(float) * 2;
 
+    std::cout << "# running: " << repeats << " x " << block_size << " x " << veclen << " ffts" << std::endl;
     cl::Context context;
     std::vector<cl::Device> devices;
     createContext(context, devices);
@@ -93,8 +95,8 @@ void fft_test(const argagg::parser_results& args)
     
     cl::Kernel source_kernel(program, "source"),
                sink_kernel(program, "sink");
-    set_args(source_kernel, device_input_buf, data_size);
-    set_args(sink_kernel, device_output_buf, data_size);
+    set_args(source_kernel, device_input_buf, data_size / veclen);
+    set_args(sink_kernel, device_output_buf, data_size / veclen);
 
     cl::Event source_event, sink_event;
     std::vector<double> timings;
@@ -137,7 +139,7 @@ void fft_test(const argagg::parser_results& args)
 		sink_queue.enqueueMapBuffer(host_output_buf, CL_TRUE, CL_MAP_READ, 0, byte_size)),
 	    data_size);
 
-        Errors err = validate_fft(shape, block_size, input_data, output_data);
+        Errors err = validate_fft(shape, block_size, veclen, input_data, output_data);
 	sink_queue.enqueueUnmapMemObject(host_output_buf, output_data.data());
 	source_queue.enqueueUnmapMemObject(host_input_buf, input_data.data());
 
@@ -175,7 +177,9 @@ argagg::parser argparser {{
     { "block", {"-b", "--block"},
         "(10) block size: number of ffts per go", 1 },
     { "repeat", {"-r", "--repeat"},
-        "(100) send a multitude of data to source", 1 }
+        "(100) send a multitude of data to source", 1 },
+    { "veclen", {"-m", "--veclen"},
+        "(1) multiplicity of vectorized operations", 1 }
 }};
 
 CommandRegistry fftCommand("fft", std::make_pair(&fft_test, argparser));

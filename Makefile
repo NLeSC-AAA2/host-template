@@ -141,7 +141,7 @@ SDKROOT:=${INTELOCLSDKROOT}
 endif
 
 AOC:=aoc
-AOCFLAGS:=-I${SDKROOT}/include/kernel_headers
+AOCFLAGS:=-I${SDKROOT}/include/kernel_headers -DTESTING
 AR=ar
 CXX:=g++
 LD:=g++
